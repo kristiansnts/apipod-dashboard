@@ -40,7 +40,9 @@ class SubscriptionResource extends Resource
                             ->schema([
                                 Forms\Components\Select::make('llm_model_id')
                                     ->label('Model')
-                                    ->options(\App\Models\LlmModel::all()->pluck('model_name', 'llm_model_id'))
+                                    ->options(\App\Models\LlmModel::with('provider')->get()->mapWithKeys(function ($model) {
+                                        return [$model->llm_model_id => $model->model_name . " (" . ($model->provider->name ?? 'No Provider') . ")"];
+                                    }))
                                     ->required()
                                     ->searchable()
                                     ->columnSpan(2),

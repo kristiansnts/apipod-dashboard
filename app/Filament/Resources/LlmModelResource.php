@@ -22,13 +22,13 @@ class LlmModelResource extends Resource
                 Forms\Components\TextInput::make('model_name')
                     ->required()
                     ->placeholder('e.g. claude-sonnet-4-5'),
-                Forms\Components\Select::make('upstream')
-                    ->options([
-                        'antigravity' => 'Antigravity (Google/Claude Pool)',
-                        'ccs' => 'CCS (Copilot Pool)',
-                        'nvidia' => 'NVIDIA NIM (NVIDIA GPU)',
-                    ])
+                Forms\Components\Select::make('provider_id')
+                    ->relationship('provider', 'name')
+                    ->searchable()
+                    ->preload()
                     ->required(),
+                Forms\Components\TextInput::make('upstream')
+                    ->maxLength(50),
             ]);
     }
 
