@@ -3,23 +3,27 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
     /**
      * Seed the application's database.
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // 1. Buat Admin User untuk Filament
+        User::updateOrCreate(
+            ['email' => 'admin@apipod.app'],
+            [
+                'name' => 'Kristian Admin',
+                'password' => Hash::make('password123'),
+                'active' => true,
+            ]
+        );
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // 2. Jalankan Seeder Fitur (Paket, Model, Test User)
+        $this->call(ApiPodTestSeeder::class);
     }
 }

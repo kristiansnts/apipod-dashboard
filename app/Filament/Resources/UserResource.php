@@ -29,13 +29,13 @@ class UserResource extends Resource
                 Forms\Components\Section::make('API & Subscription')
                     ->schema([
                         Forms\Components\TextInput::make('apitoken')
-                            ->default(fn () => 'apk_' . Str::random(32))
+                            ->default(fn () => 'sk-' . Str::random(48))
                             ->required()
                             ->suffixAction(
                                 Forms\Components\Actions\Action::make('generateToken')
                                     ->icon('heroicon-m-arrow-path')
                                     ->action(function (Forms\Set $set) {
-                                        $set('apitoken', 'apk_' . Str::random(32));
+                                        $set('apitoken', 'sk-' . Str::random(48));
                                     })
                             ),
                         Forms\Components\Select::make('sub_id')

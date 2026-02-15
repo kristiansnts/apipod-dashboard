@@ -61,12 +61,12 @@ class AdminManagementTest extends TestCase
             'name' => 'John Doe',
             'email' => 'john@example.com',
             'password' => Hash::make('password'),
-            'apitoken' => 'apk_test_secret',
+            'apitoken' => 'sk-test-secret',
             'sub_id' => $sub->sub_id,
             'active' => true
         ]);
 
-        $this->assertDatabaseHas('users', ['email' => 'john@example.com', 'apitoken' => 'apk_test_secret']);
+        $this->assertDatabaseHas('users', ['email' => 'john@example.com', 'apitoken' => 'sk-test-secret']);
         
         $user->update(['active' => false]);
         $this->assertFalse($user->fresh()->active);
