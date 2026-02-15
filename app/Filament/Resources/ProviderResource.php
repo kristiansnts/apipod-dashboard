@@ -29,12 +29,32 @@ class ProviderResource extends Resource
                         'antigravity_native' => 'Antigravity Native (Google Cloud Code)',
                         'copilot_native' => 'GitHub Copilot Native',
                     ])
+                    ->reactive()
                     ->required(),
                 Forms\Components\TextInput::make('base_url')
                     ->required()
                     ->url()
-                    ->maxLength(255),
+                    ->maxLength(255)
+                    ->placeholder('https://api.example.com')
+                    ->hintAction(
+                        Forms\Components\Actions\Action::make('set_default')
+                            ->label('Set Default')
+                            ->icon('heroicon-m-arrow-path')
+                            ->action(function (Forms\Set $set, Forms\Get $get) {
+                                $url = match ($get('provider_type')) {
+                                    'antigravity_native' => 'https://daily-cloudcode-pa.sandbox.googleapis.com',
+                                    'copilot_native' => 'https://api.githubcopilot.com',
+                                    default => '',
+                                };
+                                $set('base_url', $url);
+                            })
+                    ),
                 Forms\Components\TextInput::make('api_key')
+                    ->label(fn (Forms\Get $get) => match ($get('provider_type')) {
+                        'antigravity_native' => 'Google Refresh Token',
+                        'copilot_native' => 'GitHub Copilot Token (ghp_...)',
+                        default => 'API Key',
+                    })
                     ->password()
                     ->required()
                     ->revealable()
