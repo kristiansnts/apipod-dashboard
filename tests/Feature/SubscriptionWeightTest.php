@@ -14,6 +14,13 @@ class SubscriptionWeightTest extends TestCase
     /** @test */
     public function it_can_have_multiple_quota_items_with_weights()
     {
+        $provider = \App\Models\Provider::create([
+            'name' => 'Test Provider',
+            'base_url' => 'https://api.test.com',
+            'api_key' => 'sk-test',
+            'provider_type' => 'anthropic'
+        ]);
+
         $subscription = Subscription::create([
             'sub_name' => 'Pro Plan',
             'price' => 150000,
@@ -22,12 +29,14 @@ class SubscriptionWeightTest extends TestCase
 
         $model1 = LlmModel::create([
             'model_name' => 'Sonnet 3.5',
-            'upstream' => 'anthropic'
+            'upstream' => 'anthropic',
+            'provider_id' => $provider->id
         ]);
 
         $model2 = LlmModel::create([
             'model_name' => 'Gemini Flash',
-            'upstream' => 'google'
+            'upstream' => 'google',
+            'provider_id' => $provider->id
         ]);
 
         $subscription->quotaItems()->create([

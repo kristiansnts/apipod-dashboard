@@ -24,9 +24,8 @@ class ProviderResource extends Resource
                     ->maxLength(255),
                 Forms\Components\Select::make('provider_type')
                     ->options([
-                        'anthropic' => 'Anthropic',
-                        'openai' => 'OpenAI',
-                        'google' => 'Google',
+                        'anthropic' => 'Anthropic (/v1/messages)',
+                        'openai' => 'OpenAI (/v1/chat/completions)',
                     ])
                     ->required(),
                 Forms\Components\TextInput::make('base_url')
