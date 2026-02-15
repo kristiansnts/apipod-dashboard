@@ -29,6 +29,17 @@ class LlmModelResource extends Resource
                     ->required(),
                 Forms\Components\TextInput::make('upstream')
                     ->maxLength(50),
+                Forms\Components\Section::make('Token Pricing (USD per 1M tokens)')
+                    ->schema([
+                        Forms\Components\TextInput::make('input_cost_per_1m')
+                            ->numeric()
+                            ->default(0)
+                            ->prefix('$'),
+                        Forms\Components\TextInput::make('output_cost_per_1m')
+                            ->numeric()
+                            ->default(0)
+                            ->prefix('$'),
+                    ])->columns(2),
             ]);
     }
 
