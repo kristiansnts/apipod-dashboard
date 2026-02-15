@@ -19,15 +19,45 @@ class SubscriptionResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('sub_name')
-                    ->required()
-                    ->maxLength(100),
-                Forms\Components\TextInput::make('price')
-                    ->numeric()
-                    ->prefix('Rp'),
-                Forms\Components\Textarea::make('system_prompt')
-                    ->rows(5)
-                    ->columnSpanFull(),
+                Forms\Components\Section::make('Subscription Info')
+                    ->schema([
+                        Forms\Components\TextInput::make('sub_name')
+                            ->required()
+                            ->maxLength(100),
+                        Forms\Components\TextInput::make('price')
+                            ->numeric()
+                            ->prefix('Rp'),
+                        Forms\Components\Textarea::make('system_prompt')
+                            ->rows(3)
+                            ->columnSpanFull(),
+                    ])->columns(2),
+
+                Forms\Components\Section::make('Model Weights (Load Balancing)')
+                    ->description('Tentukan bobot persentase untuk tiap model LLM')
+                    ->schema([
+                        Forms\Components\Repeater::make('quotaItems')
+                            ->relationship('quotaItems')
+                            ->schema([
+                                Forms\Components\Select::make('llm_model_id')
+                                    ->label('Model')
+                                    ->options(\App\Models\LlmModel::with('provider')->get()->mapWithKeys(function ($model) {
+                                        return [$model->llm_model_id => $model->model_name . " (" . ($model->provider->name ?? 'No Provider') . ")"];
+                                    }))
+                                    ->required()
+                                    ->searchable()
+                                    ->columnSpan(2),
+                                Forms\Components\TextInput::make('percentage_weight')
+                                    ->label('Weight (%)')
+                                    ->numeric()
+                                    ->default(0)
+                                    ->required()
+                                    ->suffix('%')
+                                    ->columnSpan(1),
+                            ])
+                            ->columns(3)
+                            ->grid(2)
+                            ->addActionLabel('Tambah Model')
+                    ])
             ]);
     }
 
