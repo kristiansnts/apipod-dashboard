@@ -53,8 +53,14 @@ class SubscriptionResource extends Resource
                                     ->required()
                                     ->suffix('%')
                                     ->columnSpan(1),
+                                Forms\Components\TextInput::make('rpm_limit')
+                                    ->label('RPM Limit')
+                                    ->numeric()
+                                    ->default(0)
+                                    ->helperText('0 = No Limit')
+                                    ->columnSpan(1),
                             ])
-                            ->columns(3)
+                            ->columns(4)
                             ->columnSpanFull()
                             ->addActionLabel('Tambah Model')
                     ])
