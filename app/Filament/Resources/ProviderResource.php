@@ -26,6 +26,8 @@ class ProviderResource extends Resource
                     ->options([
                         'anthropic' => 'Anthropic (/v1/messages)',
                         'openai' => 'OpenAI (/v1/chat/completions)',
+                        'antigravity_native' => 'Antigravity Native (Google Cloud Code)',
+                        'copilot_native' => 'GitHub Copilot Native',
                     ])
                     ->required(),
                 Forms\Components\TextInput::make('base_url')
