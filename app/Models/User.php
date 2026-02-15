@@ -11,4 +11,9 @@ class User extends Authenticatable {
     protected function casts(): array {
         return ['email_verified_at' => 'datetime', 'password' => 'hashed', 'active' => 'boolean', 'expires_at' => 'datetime'];
     }
+
+    public function subscription()
+    {
+        return $this->belongsTo(Subscription::class, 'sub_id');
+    }
 }
