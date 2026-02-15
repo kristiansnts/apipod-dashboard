@@ -25,7 +25,7 @@ class ApiPodTestSeeder extends Seeder {
             'name' => 'Test User',
             'email' => 'test@apipod.app',
             'password' => Hash::make('password'),
-            'apitoken' => 'apk_test_123',
+            'apitoken' => 'sk-test-1234567890abcdef',
             'sub_id' => $sub->sub_id,
             'active' => true
         ]);
