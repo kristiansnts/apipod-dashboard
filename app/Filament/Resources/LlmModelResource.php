@@ -3,27 +3,32 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\LlmModelResource\Pages;
-use App\Filament\Resources\LlmModelResource\RelationManagers;
 use App\Models\LlmModel;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class LlmModelResource extends Resource
 {
     protected static ?string $model = LlmModel::class;
-
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-cpu-chip';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                //
+                Forms\Components\TextInput::make('model_name')
+                    ->required()
+                    ->placeholder('e.g. claude-sonnet-4-5'),
+                Forms\Components\Select::make('upstream')
+                    ->options([
+                        'antigravity' => 'Antigravity (Google/Claude Pool)',
+                        'ccs' => 'CCS (Copilot Pool)',
+                        'nvidia' => 'NVIDIA NIM (NVIDIA GPU)',
+                    ])
+                    ->required(),
             ]);
     }
 
@@ -31,11 +36,16 @@ class LlmModelResource extends Resource
     {
         return $table
             ->columns([
-                //
+                Tables\Columns\TextColumn::make('model_name')->searchable(),
+                Tables\Columns\BadgeColumn::make('upstream')
+                    ->colors([
+                        'primary' => 'antigravity',
+                        'success' => 'ccs',
+                        'warning' => 'nvidia',
+                    ]),
+                Tables\Columns\TextColumn::make('created_at')->dateTime(),
             ])
-            ->filters([
-                //
-            ])
+            ->filters([])
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
