@@ -29,6 +29,17 @@ class AccountsRelationManager extends RelationManager
                 Forms\Components\Toggle::make('is_active')
                     ->default(true)
                     ->required(),
+                Forms\Components\Select::make('limit_type')
+                    ->options([
+                        'rpm' => 'Requests Per Minute (RPM)',
+                        'rpd' => 'Requests Per Day (RPD)',
+                    ])
+                    ->default('rpm')
+                    ->required(),
+                Forms\Components\TextInput::make('limit_value')
+                    ->numeric()
+                    ->default(10)
+                    ->required(),
             ]);
     }
 
@@ -39,6 +50,8 @@ class AccountsRelationManager extends RelationManager
             ->columns([
                 Tables\Columns\TextColumn::make('email')->searchable(),
                 Tables\Columns\IconColumn::make('is_active')->boolean(),
+                Tables\Columns\TextColumn::make('limit_type')->badge(),
+                Tables\Columns\TextColumn::make('limit_value')->sortable(),
                 Tables\Columns\TextColumn::make('last_used_at')->dateTime()->sortable(),
             ])
             ->filters([
