@@ -55,7 +55,7 @@ class SubscriptionResource extends Resource
                                     ->columnSpan(1),
                             ])
                             ->columns(3)
-                            ->grid(2)
+                            ->columnSpanFull()
                             ->addActionLabel('Tambah Model')
                     ])
             ]);
