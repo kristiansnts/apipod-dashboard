@@ -60,6 +60,10 @@ class UserResource extends Resource
             ])
             ->filters([])
             ->actions([
+                Tables\Actions\Action::make('viewUsage')
+                    ->label('View Usage')
+                    ->icon('heroicon-o-chart-bar')
+                    ->url(fn (User $record): string => static::getUrl('viewUsage', ['record' => $record->id])),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ]);
@@ -69,6 +73,7 @@ class UserResource extends Resource
     {
         return [
             'index' => Pages\ManageUsers::route('/'),
+            'viewUsage' => Pages\ViewUsage::route('/{record}/usage'),
         ];
     }
 }

@@ -123,4 +123,16 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Currency Exchange Rate
+    |--------------------------------------------------------------------------
+    |
+    | Exchange rate from USD to IDR for currency conversion in analytics.
+    | Update this value in your .env file to reflect current exchange rates.
+    |
+    */
+
+    'usd_to_idr_fallback_rate' => env('USD_TO_IDR_FALLBACK_RATE', 15800),
+
 ];

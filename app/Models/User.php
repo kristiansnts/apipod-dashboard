@@ -3,6 +3,8 @@ namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable {
     use HasFactory, Notifiable;
@@ -12,8 +14,13 @@ class User extends Authenticatable {
         return ['email_verified_at' => 'datetime', 'password' => 'hashed', 'active' => 'boolean', 'expires_at' => 'datetime'];
     }
 
-    public function subscription()
+    public function subscription(): BelongsTo
     {
         return $this->belongsTo(Subscription::class, 'sub_id');
+    }
+
+    public function usageLogs(): HasMany
+    {
+        return $this->hasMany(UsageLog::class, 'user_id');
     }
 }
