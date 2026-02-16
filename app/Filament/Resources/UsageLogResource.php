@@ -42,6 +42,15 @@ class UsageLogResource extends Resource
                 Tables\Columns\TextColumn::make('upstream_provider')
                     ->label('Provider')
                     ->badge(),
+                Tables\Columns\TextColumn::make('status')
+                    ->label('Status')
+                    ->badge()
+                    ->color(fn (int $state): string => match (true) {
+                        $state >= 200 && $state < 300 => 'success',
+                        $state === 429 => 'warning',
+                        $state >= 400 => 'danger',
+                        default => 'gray',
+                    }),
                 Tables\Columns\TextColumn::make('token_count')
                     ->label('Tokens')
                     ->numeric()
