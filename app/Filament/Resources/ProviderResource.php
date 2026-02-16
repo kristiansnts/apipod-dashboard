@@ -27,8 +27,8 @@ class ProviderResource extends Resource
                     ->options([
                         'anthropic' => 'Anthropic (/v1/messages)',
                         'openai' => 'OpenAI (/v1/chat/completions)',
-                        'antigravity_native' => 'Antigravity Native (Google Cloud Code)',
-                        'copilot_native' => 'GitHub Copilot Native',
+                        'antigravity_proxy' => 'Antigravity Proxy',
+                        'cliproxy' => 'Cliproxy',
                     ])
                     ->reactive()
                     ->required(),
@@ -43,13 +43,19 @@ class ProviderResource extends Resource
                             ->icon('heroicon-m-arrow-path')
                             ->action(function (Forms\Set $set, Forms\Get $get) {
                                 $url = match ($get('provider_type')) {
-                                    'antigravity_native' => 'https://daily-cloudcode-pa.sandbox.googleapis.com',
-                                    'copilot_native' => 'https://api.githubcopilot.com',
+                                    'anthropic' => 'https://api.anthropic.com',
+                                    'openai' => 'https://api.openai.com',
                                     default => '',
                                 };
                                 $set('base_url', $url);
                             })
                     ),
+                Forms\Components\Textarea::make('api_key')
+                    ->label('API Key')
+                    ->rows(3)
+                    ->columnSpanFull()
+                    ->visible(fn (Forms\Get $get) => in_array($get('provider_type'), ['antigravity_proxy', 'cliproxy']))
+                    ->required(fn (Forms\Get $get) => in_array($get('provider_type'), ['antigravity_proxy', 'cliproxy'])),
             ]);
     }
 

@@ -14,15 +14,8 @@ class ProviderAccount extends Model
         'provider_id',
         'email',
         'api_key',
-        'is_active',
         'limit_type',
         'limit_value',
-        'last_used_at',
-    ];
-
-    protected $casts = [
-        'is_active' => 'boolean',
-        'last_used_at' => 'datetime',
     ];
 
     public function provider(): BelongsTo
