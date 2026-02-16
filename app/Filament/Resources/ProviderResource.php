@@ -56,8 +56,9 @@ class ProviderResource extends Resource
                     ->label('API Key')
                     ->rows(3)
                     ->columnSpanFull()
-                    ->visible(fn (Forms\Get $get) => in_array($get('provider_type'), ['antigravity_proxy', 'cliproxy', 'groq']))
-                    ->required(fn (Forms\Get $get) => in_array($get('provider_type'), ['antigravity_proxy', 'cliproxy', 'groq'])),
+                    ->helperText(fn (Forms\Get $get) => in_array($get('provider_type'), ['anthropic', 'openai'])
+                        ? 'Optional if using Provider Accounts for pooling'
+                        : null),
             ]);
     }
 

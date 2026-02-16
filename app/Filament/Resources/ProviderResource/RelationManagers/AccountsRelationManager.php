@@ -15,7 +15,7 @@ class AccountsRelationManager extends RelationManager
 
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
-        return in_array($ownerRecord->provider_type, ['anthropic', 'openai']);
+        return in_array($ownerRecord->provider_type, ['anthropic', 'openai', 'groq']);
     }
 
     public function form(Form $form): Form

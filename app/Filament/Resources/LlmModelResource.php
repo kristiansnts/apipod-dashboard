@@ -27,8 +27,6 @@ class LlmModelResource extends Resource
                     ->searchable()
                     ->preload()
                     ->required(),
-                Forms\Components\TextInput::make('upstream')
-                    ->maxLength(50),
                 Forms\Components\Section::make('Token Pricing (USD per 1M tokens)')
                     ->schema([
                         Forms\Components\TextInput::make('input_cost_per_1m')
@@ -48,12 +46,9 @@ class LlmModelResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('model_name')->searchable(),
-                Tables\Columns\BadgeColumn::make('upstream')
-                    ->colors([
-                        'primary' => 'antigravity',
-                        'success' => 'ccs',
-                        'warning' => 'nvidia',
-                    ]),
+                Tables\Columns\TextColumn::make('provider.name')
+                    ->label('Provider')
+                    ->badge(),
                 Tables\Columns\TextColumn::make('created_at')->dateTime(),
             ])
             ->filters([])
