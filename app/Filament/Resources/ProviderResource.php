@@ -27,6 +27,7 @@ class ProviderResource extends Resource
                     ->options([
                         'anthropic' => 'Anthropic (/v1/messages)',
                         'openai' => 'OpenAI (/v1/chat/completions)',
+                        'groq' => 'Groq (OpenAI-compatible)',
                         'antigravity_proxy' => 'Antigravity Proxy',
                         'cliproxy' => 'Cliproxy',
                     ])
@@ -45,6 +46,7 @@ class ProviderResource extends Resource
                                 $url = match ($get('provider_type')) {
                                     'anthropic' => 'https://api.anthropic.com',
                                     'openai' => 'https://api.openai.com',
+                                    'groq' => 'https://api.groq.com',
                                     default => '',
                                 };
                                 $set('base_url', $url);
@@ -54,8 +56,8 @@ class ProviderResource extends Resource
                     ->label('API Key')
                     ->rows(3)
                     ->columnSpanFull()
-                    ->visible(fn (Forms\Get $get) => in_array($get('provider_type'), ['antigravity_proxy', 'cliproxy']))
-                    ->required(fn (Forms\Get $get) => in_array($get('provider_type'), ['antigravity_proxy', 'cliproxy'])),
+                    ->visible(fn (Forms\Get $get) => in_array($get('provider_type'), ['antigravity_proxy', 'cliproxy', 'groq']))
+                    ->required(fn (Forms\Get $get) => in_array($get('provider_type'), ['antigravity_proxy', 'cliproxy', 'groq'])),
             ]);
     }
 
