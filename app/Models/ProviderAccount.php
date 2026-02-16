@@ -15,6 +15,8 @@ class ProviderAccount extends Model
         'email',
         'api_key',
         'is_active',
+        'limit_type',
+        'limit_value',
         'last_used_at',
     ];
 

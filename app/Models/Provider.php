@@ -6,10 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Provider extends Model
 {
-    protected $fillable = ['name', 'base_url', 'api_key', 'provider_type'];
+    protected $fillable = ['name', 'base_url', 'provider_type'];
 
     public function llmModels()
     {
         return $this->hasMany(LlmModel::class);
+    }
+
+    public function providerAccounts()
+    {
+        return $this->hasMany(ProviderAccount::class);
     }
 }

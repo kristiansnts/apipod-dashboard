@@ -50,16 +50,6 @@ class ProviderResource extends Resource
                                 $set('base_url', $url);
                             })
                     ),
-                Forms\Components\TextInput::make('api_key')
-                    ->label(fn (Forms\Get $get) => match ($get('provider_type')) {
-                        'antigravity_native' => 'Google Refresh Token',
-                        'copilot_native' => 'GitHub Copilot Token (ghp_...)',
-                        default => 'API Key',
-                    })
-                    ->password()
-                    ->required()
-                    ->revealable()
-                    ->maxLength(255),
             ]);
     }
 
@@ -84,10 +74,19 @@ class ProviderResource extends Resource
             ]);
     }
 
+    public static function getRelations(): array
+    {
+        return [
+            RelationManagers\AccountsRelationManager::class,
+        ];
+    }
+
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ManageProviders::route('/'),
+            'index' => Pages\ListProviders::route('/'),
+            'create' => Pages\CreateProvider::route('/create'),
+            'edit' => Pages\EditProvider::route('/{record}/edit'),
         ];
     }
 }
