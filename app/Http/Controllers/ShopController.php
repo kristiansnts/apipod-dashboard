@@ -14,7 +14,9 @@ class ShopController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        Xendit::setApiKey(config('services.xendit.secret_key'));
+        \Xendit\Configuration::getDefaultConfiguration()->setApiKey(config(
+            'services.xendit.secret_key'
+        ));
     }
 
     public function index()
