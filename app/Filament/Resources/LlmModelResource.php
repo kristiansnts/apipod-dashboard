@@ -49,6 +49,14 @@ class LlmModelResource extends Resource
                 Tables\Columns\TextColumn::make('provider.name')
                     ->label('Provider')
                     ->badge(),
+                Tables\Columns\TextColumn::make('input_cost_per_1m')
+                    ->label('Input Price / 1M')
+                    ->money('usd')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('output_cost_per_1m')
+                    ->label('Output Price / 1M')
+                    ->money('usd')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')->dateTime(),
             ])
             ->filters([])

@@ -11,6 +11,46 @@ use Carbon\Carbon;
 class TokenUsageService
 {
     /**
+     * Get the user's current quota status
+     */
+    public function getQuotaStatus(User $user): array
+    {
+        $subscription = $user->subscription;
+        
+        if (!$subscription) {
+            return [
+                'has_quota' => false,
+                'limit' => 0,
+                'used' => 0,
+                'remaining' => 0,
+                'percentage' => 0,
+                'reset_at' => null
+            ];
+        }
+
+        $limit = $subscription->monthly_token_limit;
+        $used = $user->tokens_used;
+        
+        // Handle reset logic if needed
+        if ($user->quota_reset_at && Carbon::now()->gt($user->quota_reset_at)) {
+            // Logic to reset would go here, or we rely on a scheduled job
+        }
+
+        $remaining = max(0, $limit - $used);
+        $percentage = $limit > 0 ? min(100, round(($used / $limit) * 100, 1)) : 0;
+
+        return [
+            'has_quota' => $limit > 0,
+            'limit' => $limit,
+            'used' => $used,
+            'remaining' => $remaining,
+            'percentage' => $percentage,
+            'reset_at' => $user->quota_reset_at,
+            'subscription_name' => $subscription->sub_name
+        ];
+    }
+
+    /**
      * Calculate cost for a single usage log entry
      */
     public function calculateUsageCost(UsageLog $usageLog): float

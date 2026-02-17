@@ -17,6 +17,20 @@ class UsageAnalyticsController extends Controller
     }
 
     /**
+     * Get current user's quota status
+     */
+    public function getQuota()
+    {
+        $user = Auth::user();
+        $quota = $this->tokenUsageService->getQuotaStatus($user);
+
+        return response()->json([
+            'success' => true,
+            'data' => $quota
+        ]);
+    }
+
+    /**
      * Get current user's usage summary
      */
     public function getUserSummary(Request $request)

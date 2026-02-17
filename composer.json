@@ -10,6 +10,7 @@
         "ashallendesign/laravel-exchange-rates": "^7.10",
         "filament/filament": "^3.2",
         "laravel/framework": "^12.0",
+        "laravel/socialite": "^5.24",
         "laravel/tinker": "^2.10.1",
         "xendit/xendit-php": "^7.0"
     },

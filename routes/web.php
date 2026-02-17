@@ -1,7 +1,39 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\LogoutController;
+use App\Services\TokenUsageService;
+use Illuminate\Support\Facades\Auth;
 
 Route::get('/', function () {
     return view('welcome');
+});
+
+use Laravel\Socialite\Facades\Socialite;
+
+Route::get('/auth/{provider}', function ($provider) {
+    return Socialite::driver($provider)->redirect();
+})->name('social.redirect');
+
+Route::get('/auth/{provider}/callback', [App\Http\Controllers\Auth\SocialiteController::class, 'handleProviderCallback'])->name('social.callback');
+
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [LoginController::class, 'login']);
+    Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+    Route::post('/register', [RegisterController::class, 'register']);
+});
+
+Route::get('/about', function () {
+    return view('about');
+})->name('about');
+
+Route::middleware('auth')->group(function () {
+    Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
+    Route::get('/dashboard', function (TokenUsageService $tokenUsageService) {
+        $quota = $tokenUsageService->getQuotaStatus(Auth::user());
+        return view('dashboard', compact('quota'));
+    })->name('dashboard');
 });
