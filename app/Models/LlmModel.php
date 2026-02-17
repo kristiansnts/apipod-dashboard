@@ -7,7 +7,10 @@ class LlmModel extends Model {
         'model_name',
         'provider_id',
         'input_cost_per_1m',
-        'output_cost_per_1m'
+        'output_cost_per_1m',
+        'rpm',
+        'tpm',
+        'rpd'
     ];
 
     public function provider()

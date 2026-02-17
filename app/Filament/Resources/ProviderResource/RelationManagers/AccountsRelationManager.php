@@ -15,7 +15,7 @@ class AccountsRelationManager extends RelationManager
 
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
-        return in_array($ownerRecord->provider_type, ['anthropic', 'openai', 'groq']);
+        return in_array($ownerRecord->provider_type, ['anthropic', 'openai', 'groq', 'google_ai_studio']);
     }
 
     public function form(Form $form): Form
@@ -30,17 +30,6 @@ class AccountsRelationManager extends RelationManager
                     ->required()
                     ->rows(3)
                     ->columnSpanFull(),
-                Forms\Components\Select::make('limit_type')
-                    ->options([
-                        'rpm' => 'Requests Per Minute (RPM)',
-                        'rpd' => 'Requests Per Day (RPD)',
-                    ])
-                    ->default('rpm')
-                    ->required(),
-                Forms\Components\TextInput::make('limit_value')
-                    ->numeric()
-                    ->default(10)
-                    ->required(),
             ]);
     }
 
@@ -50,8 +39,6 @@ class AccountsRelationManager extends RelationManager
             ->recordTitleAttribute('email')
             ->columns([
                 Tables\Columns\TextColumn::make('email')->searchable(),
-                Tables\Columns\TextColumn::make('limit_type')->badge(),
-                Tables\Columns\TextColumn::make('limit_value')->sortable(),
             ])
             ->filters([
                 //
