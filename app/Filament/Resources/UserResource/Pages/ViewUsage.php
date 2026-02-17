@@ -18,6 +18,7 @@ class ViewUsage extends Page
     public ?int $userId = null;
     public array $summary = [];
     public array $usageByModel = [];
+    public array $usageByRequestedModel = [];
     public array $dailyAnalytics = [];
     public array $topModels = [];
     public string $startDate = '';
@@ -48,6 +49,7 @@ class ViewUsage extends Page
 
         $this->summary = $service->calculateUserCost($this->userId, $startDate, $endDate);
         $this->usageByModel = $service->getUserUsageByModel($this->userId, $startDate, $endDate);
+        $this->usageByRequestedModel = $service->getUserUsageByRequestedModel($this->userId, $startDate, $endDate);
         $this->dailyAnalytics = $service->getDailyUsageAnalytics($this->userId, $startDate, $endDate);
         $this->topModels = $service->getTopModelsByCost($this->userId, 5, $startDate, $endDate);
     }

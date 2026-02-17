@@ -12,6 +12,9 @@
             <div class="flex justify-between items-center py-4">
                 <h1 class="text-xl font-bold">Dashboard</h1>
                 <div class="flex items-center space-x-4">
+                    <a href="{{ route('shop.index') }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                        Shop
+                    </a>
                     <span class="text-gray-700">{{ auth()->user()->name }}</span>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf

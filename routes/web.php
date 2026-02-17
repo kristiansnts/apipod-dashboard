@@ -36,4 +36,13 @@ Route::middleware('auth')->group(function () {
         $quota = $tokenUsageService->getQuotaStatus(Auth::user());
         return view('dashboard', compact('quota'));
     })->name('dashboard');
+
+    // Shop routes
+    Route::get('/shop', [App\Http\Controllers\ShopController::class, 'index'])->name('shop.index');
+    Route::post('/shop/{plan}/purchase', [App\Http\Controllers\ShopController::class, 'purchase'])->name('shop.purchase');
+    Route::get('/shop/success/{payment}', [App\Http\Controllers\ShopController::class, 'success'])->name('shop.success');
+    Route::get('/shop/failed/{payment}', [App\Http\Controllers\ShopController::class, 'failed'])->name('shop.failed');
 });
+
+// Xendit webhook (public route)
+Route::post('/webhooks/xendit', [App\Http\Controllers\PaymentController::class, 'webhook'])->name('webhooks.xendit');

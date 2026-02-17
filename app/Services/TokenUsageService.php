@@ -243,6 +243,58 @@ class TokenUsageService
     }
 
     /**
+     * Get usage breakdown by requested model for a user
+     */
+    public function getUserUsageByRequestedModel(int $userId, ?Carbon $startDate = null, ?Carbon $endDate = null): array
+    {
+        $query = UsageLog::select(
+            'requested_model',
+            DB::raw('SUM(input_tokens) as total_input_tokens'),
+            DB::raw('SUM(output_tokens) as total_output_tokens'),
+            DB::raw('COUNT(*) as request_count')
+        )
+        ->where('user_id', $userId)
+        ->whereNotNull('requested_model')
+        ->groupBy('requested_model');
+
+        if ($startDate) {
+            $query->where('timestamp', '>=', $startDate);
+        }
+
+        if ($endDate) {
+            $query->where('timestamp', '<=', $endDate);
+        }
+
+        $results = $query->get();
+        $breakdown = [];
+
+        foreach ($results as $result) {
+            $model = LlmModel::where('model_name', $result->requested_model)->first();
+
+            $inputCost = 0.0;
+            $outputCost = 0.0;
+
+            if ($model) {
+                $inputCost = ($result->total_input_tokens / 1_000_000) * $model->input_cost_per_1m;
+                $outputCost = ($result->total_output_tokens / 1_000_000) * $model->output_cost_per_1m;
+            }
+
+            $breakdown[] = [
+                'model' => $result->requested_model,
+                'input_tokens' => $result->total_input_tokens,
+                'output_tokens' => $result->total_output_tokens,
+                'total_tokens' => $result->total_input_tokens + $result->total_output_tokens,
+                'request_count' => $result->request_count,
+                'input_cost' => round($inputCost, 4),
+                'output_cost' => round($outputCost, 4),
+                'total_cost' => round($inputCost + $outputCost, 4),
+            ];
+        }
+
+        return $breakdown;
+    }
+
+    /**
      * Get top models by cost for a user
      */
     public function getTopModelsByCost(int $userId, int $limit = 5, ?Carbon $startDate = null, ?Carbon $endDate = null): array

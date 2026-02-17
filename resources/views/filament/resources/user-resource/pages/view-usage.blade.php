@@ -180,6 +180,64 @@
             </div>
         </div>
 
+        <!-- Usage by Requested Model -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Usage by Requested Model</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Cost calculated based on the model the client requested (visible to client)</p>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="text-xs text-gray-700 dark:text-gray-300 uppercase bg-gray-50 dark:bg-gray-700/50">
+                        <tr>
+                            <th class="px-6 py-3">Model</th>
+                            <th class="px-6 py-3 text-right">Input Tokens</th>
+                            <th class="px-6 py-3 text-right">Output Tokens</th>
+                            <th class="px-6 py-3 text-right">Total Tokens</th>
+                            <th class="px-6 py-3 text-right">Requests</th>
+                            <th class="px-6 py-3 text-right">Input Cost</th>
+                            <th class="px-6 py-3 text-right">Output Cost</th>
+                            <th class="px-6 py-3 text-right">Total Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($usageByRequestedModel as $usage)
+                        <tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                            <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">
+                                {{ $usage['model'] }}
+                            </td>
+                            <td class="px-6 py-4 text-right text-gray-600 dark:text-gray-400">
+                                {{ number_format($usage['input_tokens']) }}
+                            </td>
+                            <td class="px-6 py-4 text-right text-gray-600 dark:text-gray-400">
+                                {{ number_format($usage['output_tokens']) }}
+                            </td>
+                            <td class="px-6 py-4 text-right text-gray-600 dark:text-gray-400">
+                                {{ number_format($usage['total_tokens']) }}
+                            </td>
+                            <td class="px-6 py-4 text-right text-gray-600 dark:text-gray-400">
+                                {{ number_format($usage['request_count']) }}
+                            </td>
+                            <td class="px-6 py-4 text-right text-gray-600 dark:text-gray-400">
+                                {!! $this->formatCurrency($usage['input_cost']) !!}
+                            </td>
+                            <td class="px-6 py-4 text-right text-gray-600 dark:text-gray-400">
+                                {!! $this->formatCurrency($usage['output_cost']) !!}
+                            </td>
+                            <td class="px-6 py-4 text-right font-semibold text-gray-900 dark:text-white">
+                                {!! $this->formatCurrency($usage['total_cost']) !!}
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="8" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                                No usage data available for the selected period
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <!-- Daily Usage Chart -->
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Daily Usage Trend</h3>
