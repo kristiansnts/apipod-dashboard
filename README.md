@@ -5,55 +5,127 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+<img src="https://img.shields.io/badge/PHP-8.2%2B-blue" alt="PHP 8.2+">
+<img src="https://img.shields.io/badge/Laravel-12.x-red" alt="Laravel 12">
 </p>
 
-## About Laravel
+# API Pod Dashboard
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+A comprehensive Laravel-based dashboard for managing LLM API usage, subscriptions, payments, and rate limits. Built for API pod services to provide users with subscription plans, usage analytics, and payment processing.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## ✨ Features
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Multi‑provider LLM Support** – Integrate with various LLM providers (OpenAI, Google AI Studio, etc.) with per‑model rate limits (RPM, TPM, RPD)
+- **Subscription & Billing** – Create and manage subscription plans with automatic payment processing via Xendit
+- **Usage Analytics** – Detailed token usage tracking with quota resets and real‑time logs
+- **OAuth Authentication** – GitHub OAuth integration for easy sign‑up and login
+- **Admin Panel** – Built with Filament for managing users, plans, providers, and payments
+- **Shop Interface** – User‑friendly shop view for purchasing subscription plans
+- **Exchange Rate Integration** – Automatic currency conversion for international pricing
+- **Webhook Support** – Handle payment notifications from Xendit
 
-## Learning Laravel
+## 🛠 Tech Stack
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+- **Backend**: Laravel 12, PHP 8.2+
+- **Frontend**: Blade templates, Tailwind CSS v4, Instrument Sans font
+- **Database**: PostgreSQL (default), supports Laravel's database drivers
+- **Admin**: Filament PHP
+- **Payments**: Xendit PHP SDK
+- **Authentication**: Laravel Socialite (GitHub OAuth)
+- **Exchange Rates**: Laravel Exchange Rates package
+- **Queue & Cache**: Redis (optional), database queue driver
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 🚀 Installation
 
-## Laravel Sponsors
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/your-org/apipod-dashboard.git
+   cd apipod-dashboard
+   ```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+2. **Install PHP dependencies**
+   ```bash
+   composer install
+   ```
 
-### Premium Partners
+3. **Install JavaScript dependencies**
+   ```bash
+   npm install
+   ```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+4. **Set up environment variables**
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+   Edit `.env` with your database, GitHub OAuth, Xendit, and exchange‑rate API keys.
 
-## Contributing
+5. **Run database migrations**
+   ```bash
+   php artisan migrate --seed
+   ```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+6. **Build frontend assets**
+   ```bash
+   npm run build
+   ```
 
-## Code of Conduct
+7. **Start the development server**
+   ```bash
+   php artisan serve
+   ```
+   Visit `http://localhost:8000` in your browser.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## ⚙️ Environment Configuration
 
-## Security Vulnerabilities
+Key environment variables in `.env`:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```env
+DB_CONNECTION=pgsql
+DB_DATABASE=apipod
 
-## License
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+GITHUB_REDIRECT_URI=http://localhost:8000/auth/github/callback
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+XENDIT_SECRET_KEY=
+XENDIT_PUBLIC_KEY=
+
+EXCHANGE_RATES_API_KEY=
+USD_TO_IDR_FALLBACK_RATE=15800
+```
+
+See `.env.example` for all available options.
+
+## 📦 Project Structure
+
+- `app/Models/` – Eloquent models (User, Plan, Payment, Provider, LlmModel, etc.)
+- `app/Http/Controllers/` – Web controllers (ShopController, PaymentController, SocialiteController)
+- `app/Services/` – Business logic (TokenUsageService, etc.)
+- `resources/views/` – Blade templates with Tailwind CSS
+- `routes/web.php` – Web routes (shop, auth, webhooks)
+- `database/migrations/` – Database schema definitions
+
+## 🧪 Running Tests
+
+```bash
+composer test
+```
+
+## 🔧 Development
+
+The project includes a convenient `dev` script that runs the development server, queue worker, log tail, and Vite dev server concurrently:
+
+```bash
+composer run dev
+```
+
+For a full setup (install dependencies, generate key, migrate, build assets):
+
+```bash
+composer run setup
+```
+
+## 📄 License
+
+The Laravel framework is open‑source software licensed under the [MIT license](https://opensource.org/licenses/MIT).
