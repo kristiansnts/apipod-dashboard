@@ -39,7 +39,7 @@ class UserResource extends Resource
                                     })
                             ),
                         Forms\Components\Select::make('sub_id')
-                            ->relationship('subscription', 'sub_name')
+                            ->relationship('plan', 'name')
                             ->required(),
                         Forms\Components\Toggle::make('active')->default(true),
                         Forms\Components\DateTimePicker::make('expires_at'),
@@ -54,7 +54,7 @@ class UserResource extends Resource
                 Tables\Columns\TextColumn::make('name')->searchable(),
                 Tables\Columns\TextColumn::make('email')->searchable(),
                 Tables\Columns\TextColumn::make('apitoken')->copyable()->fontFamily('mono')->limit(15),
-                Tables\Columns\TextColumn::make('subscription.sub_name')->label('Plan'),
+                Tables\Columns\TextColumn::make('plan.name')->label('Plan'),
                 Tables\Columns\IconColumn::make('active')->boolean(),
                 Tables\Columns\TextColumn::make('expires_at')->dateTime()->sortable(),
             ])
