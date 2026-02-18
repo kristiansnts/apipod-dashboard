@@ -8,8 +8,8 @@ use App\Services\TokenUsageService;
 use Illuminate\Support\Facades\Auth;
 
 Route::get('/', function () {
-    return view('welcome');
-});
+    return view('home');
+})->middleware('auth')->name('home');
 
 use Laravel\Socialite\Facades\Socialite;
 
@@ -32,10 +32,6 @@ Route::get('/about', function () {
 
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
-    Route::get('/dashboard', function (TokenUsageService $tokenUsageService) {
-        $quota = $tokenUsageService->getQuotaStatus(Auth::user());
-        return view('dashboard', compact('quota'));
-    })->name('dashboard');
 
     // Shop routes
     Route::get('/shop', [App\Http\Controllers\ShopController::class, 'index'])->name('shop.index');

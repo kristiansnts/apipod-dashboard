@@ -88,7 +88,7 @@ class LlmModelResource extends Resource
                     ->label('RPD')
                     ->placeholder('-')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('created_at')->dateTime(),
+                Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable(),
             ])
             ->filters([])
             ->actions([
