@@ -28,6 +28,7 @@ class ProviderResource extends Resource
                         'anthropic' => 'Anthropic (/v1/messages)',
                         'openai' => 'OpenAI (/v1/chat/completions)',
                         'groq' => 'Groq (OpenAI-compatible)',
+                        'google_ai_studio' => 'Google AI Studio (Gemini)',
                         'antigravity_proxy' => 'Antigravity Proxy',
                         'cliproxy' => 'Cliproxy',
                     ])
@@ -47,6 +48,7 @@ class ProviderResource extends Resource
                                     'anthropic' => 'https://api.anthropic.com',
                                     'openai' => 'https://api.openai.com',
                                     'groq' => 'https://api.groq.com',
+                                    'google_ai_studio' => 'https://generativelanguage.googleapis.com',
                                     default => '',
                                 };
                                 $set('base_url', $url);

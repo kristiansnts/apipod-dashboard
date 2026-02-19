@@ -14,8 +14,6 @@ class ProviderAccount extends Model
         'provider_id',
         'email',
         'api_key',
-        'limit_type',
-        'limit_value',
     ];
 
     public function provider(): BelongsTo

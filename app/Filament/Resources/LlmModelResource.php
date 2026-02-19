@@ -38,6 +38,25 @@ class LlmModelResource extends Resource
                             ->default(0)
                             ->prefix('$'),
                     ])->columns(2),
+                Forms\Components\Section::make('Rate Limits')
+                    ->description('Leave empty for unlimited')
+                    ->schema([
+                        Forms\Components\TextInput::make('rpm')
+                            ->label('RPM')
+                            ->helperText('Requests per minute')
+                            ->numeric()
+                            ->nullable(),
+                        Forms\Components\TextInput::make('tpm')
+                            ->label('TPM')
+                            ->helperText('Tokens per minute')
+                            ->numeric()
+                            ->nullable(),
+                        Forms\Components\TextInput::make('rpd')
+                            ->label('RPD')
+                            ->helperText('Requests per day')
+                            ->numeric()
+                            ->nullable(),
+                    ])->columns(3),
             ]);
     }
 
@@ -57,7 +76,19 @@ class LlmModelResource extends Resource
                     ->label('Output Price / 1M')
                     ->money('usd')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('created_at')->dateTime(),
+                Tables\Columns\TextColumn::make('rpm')
+                    ->label('RPM')
+                    ->placeholder('-')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('tpm')
+                    ->label('TPM')
+                    ->placeholder('-')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('rpd')
+                    ->label('RPD')
+                    ->placeholder('-')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable(),
             ])
             ->filters([])
             ->actions([

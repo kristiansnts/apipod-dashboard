@@ -33,9 +33,9 @@ class User extends Authenticatable {
         ];
     }
 
-    public function subscription(): BelongsTo
+    public function plan(): BelongsTo
     {
-        return $this->belongsTo(Subscription::class, 'sub_id');
+        return $this->belongsTo(Plan::class, 'sub_id');
     }
 
     public function usageLogs(): HasMany
