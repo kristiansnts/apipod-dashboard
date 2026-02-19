@@ -38,7 +38,7 @@ class DeviceAuthController extends Controller
             ]);
 
             if ($response->successful()) {
-                return back()->with('success', 'Device authorized! You can close this page and return to your terminal.');
+                return redirect()->route('device.success');
             }
 
             $error = $response->json('error', 'Invalid or expired device code. Please try again.');

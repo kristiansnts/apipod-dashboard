@@ -16,6 +16,7 @@ use Laravel\Socialite\Facades\Socialite;
 
 // Device auth for CLI login (must be before {provider} wildcard)
 Route::get('/auth/device', [DeviceAuthController::class, 'show'])->name('device.show');
+Route::get('/auth/device/success', fn () => view('auth.device-success'))->name('device.success');
 Route::post('/auth/device/authorize', [DeviceAuthController::class, 'approveDevice'])->middleware('auth')->name('device.authorize');
 
 Route::get('/auth/{provider}', function ($provider) {
