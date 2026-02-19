@@ -46,4 +46,8 @@ return [
         'public_key' => env('XENDIT_PUBLIC_KEY'),
     ],
 
+    'apipod_proxy' => [
+        'url' => env('APIPOD_PROXY_URL', 'http://localhost:8081'),
+    ],
+
 ];
