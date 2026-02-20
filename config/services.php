@@ -53,4 +53,8 @@ return [
         'url' => env('APIPOD_PROXY_URL', 'http://localhost:8081'),
     ],
 
+    'internal' => [
+        'api_secret' => env('INTERNAL_API_SECRET'),
+    ],
+
 ];

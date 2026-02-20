@@ -3,15 +3,17 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\DeviceAuthController;
 use App\Http\Controllers\UsageAnalyticsController;
-use App\Http\Controllers\UsageCommitController;
+use App\Http\Controllers\InternalApiController;
 
 // Device auth endpoints (public, called by CLI)
 Route::post('/auth/device/code', [DeviceAuthController::class, 'requestCode']);
 Route::post('/auth/device/token', [DeviceAuthController::class, 'pollToken']);
 
-// Usage endpoints for Go proxy (internal, should be protected by proxy secret in production)
-Route::post('/usage/pre-check', [UsageCommitController::class, 'preCheck']);
-Route::post('/usage/commit', [UsageCommitController::class, 'commit']);
+// Internal API for Go proxy (protected by shared secret)
+Route::middleware('internal.secret')->prefix('internal')->group(function () {
+    Route::get('/runtime-config', [InternalApiController::class, 'runtimeConfig']);
+    Route::post('/commit-usage', [InternalApiController::class, 'commitUsage']);
+});
 
 Route::middleware(['auth:sanctum'])->group(function () {
     // User analytics endpoints

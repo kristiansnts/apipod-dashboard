@@ -224,6 +224,16 @@
                         </svg>
                         API Keys
                     </a>
+                    @if(auth()->user()->organization?->plan?->is_byok)
+                        <a href="{{ route('dashboard.provider-keys') }}"
+                            class="nav-link {{ request()->routeIs('dashboard.provider-keys') ? 'active' : '' }}">
+                            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                            Provider Keys
+                        </a>
+                    @endif
                     <a href="{{ route('dashboard.analytics') }}"
                         class="nav-link {{ request()->routeIs('dashboard.analytics') ? 'active' : '' }}">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -245,7 +255,8 @@
                 <div class="flex-1 truncate">
                     <p class="text-[13px] font-bold text-gray-900 truncate">{{ auth()->user()->name }}</p>
                     <p class="text-[11px] text-gray-500 font-medium truncate italic">
-                        {{ auth()->user()->organization?->plan?->name ?? 'No Plan' }}</p>
+                        {{ auth()->user()->organization?->plan?->name ?? 'No Plan' }}
+                    </p>
                 </div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf

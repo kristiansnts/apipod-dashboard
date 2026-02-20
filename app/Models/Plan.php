@@ -21,6 +21,8 @@ class Plan extends Model
         'max_api_keys',
         'rate_limit_rpm',
         'rate_limit_tpm',
+        'is_byok',
+        'daily_request_cap',
     ];
 
     protected function casts(): array
@@ -33,6 +35,8 @@ class Plan extends Model
             'max_api_keys' => 'integer',
             'rate_limit_rpm' => 'integer',
             'rate_limit_tpm' => 'integer',
+            'is_byok' => 'boolean',
+            'daily_request_cap' => 'integer',
         ];
     }
 

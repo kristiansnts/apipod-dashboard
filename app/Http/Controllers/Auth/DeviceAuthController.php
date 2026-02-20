@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\ApiKey;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
@@ -28,20 +29,20 @@ class DeviceAuthController extends Controller
 
         $data = [
             'device_code' => $deviceCode,
-            'user_code'   => $userCode,
-            'status'      => 'pending',
-            'created_at'  => now()->toIso8601String(),
+            'user_code' => $userCode,
+            'status' => 'pending',
+            'created_at' => now()->toIso8601String(),
         ];
 
         Cache::put("device_auth:{$deviceCode}", $data, now()->addMinutes(self::TTL_MINUTES));
         Cache::put("device_auth_user:{$userCode}", $deviceCode, now()->addMinutes(self::TTL_MINUTES));
 
         return response()->json([
-            'device_code'      => $deviceCode,
-            'user_code'        => $userCode,
+            'device_code' => $deviceCode,
+            'user_code' => $userCode,
             'verification_url' => config('app.url') . '/auth/device',
-            'interval'         => self::POLL_INTERVAL,
-            'expires_in'       => self::TTL_MINUTES * 60,
+            'interval' => self::POLL_INTERVAL,
+            'expires_in' => self::TTL_MINUTES * 60,
         ]);
     }
 
@@ -62,8 +63,10 @@ class DeviceAuthController extends Controller
 
         if ($data['status'] === 'authorized') {
             $resp['api_token'] = $data['api_token'];
-            $resp['username']  = $data['username'];
-            $resp['plan']      = $data['plan'];
+            $resp['username'] = $data['username'];
+            $resp['plan'] = $data['plan'];
+            $resp['active_model'] = $data['active_model'] ?? null;
+            $resp['is_byok'] = $data['is_byok'] ?? false;
         }
 
         return response()->json($resp);
@@ -99,10 +102,16 @@ class DeviceAuthController extends Controller
             return back()->withErrors(['user_code' => 'Invalid or expired device code. Please try again.'])->withInput();
         }
 
-        $data['status']    = 'authorized';
-        $data['api_token'] = $user->apitoken;
-        $data['username']  = $user->name;
-        $data['plan']      = $user->plan?->sub_name ?? 'free';
+        $data['status'] = 'authorized';
+
+        // Generate a new secure API key for this device
+        $result = ApiKey::generateKey($user->org_id, 'CLI: ' . ($request->header('User-Agent') ?? 'Unknown Device'));
+
+        $data['api_token'] = $result['plain_key'];
+        $data['username'] = $user->name;
+        $data['plan'] = $user->plan?->sub_name ?? 'free';
+        $data['active_model'] = $user->organization?->activeModel?->model_name;
+        $data['is_byok'] = $user->plan?->is_byok ?? false;
 
         Cache::put("device_auth:{$deviceCode}", $data, now()->addMinutes(self::TTL_MINUTES));
 

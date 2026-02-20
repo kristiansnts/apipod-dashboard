@@ -21,6 +21,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->validateCsrfTokens(except: [
             'webhooks/*',
+            'internal/*',
+        ]);
+        $middleware->alias([
+            'internal.secret' => \App\Http\Middleware\InternalApiSecret::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

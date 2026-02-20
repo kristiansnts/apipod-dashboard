@@ -16,6 +16,9 @@ class Organization extends Model
         'quota_reset_at',
         'is_active',
         'next_billing_at',
+        'daily_request_count',
+        'daily_request_date',
+        'active_model_id',
     ];
 
     protected function casts(): array
@@ -25,6 +28,8 @@ class Organization extends Model
             'quota_reset_at' => 'datetime',
             'is_active' => 'boolean',
             'next_billing_at' => 'datetime',
+            'daily_request_count' => 'integer',
+            'daily_request_date' => 'date',
         ];
     }
 
@@ -46,6 +51,16 @@ class Organization extends Model
     public function tokenLedger(): HasMany
     {
         return $this->hasMany(TokenLedger::class, 'org_id');
+    }
+
+    public function providerKeys(): HasMany
+    {
+        return $this->hasMany(OrgProviderKey::class, 'org_id');
+    }
+
+    public function activeModel(): BelongsTo
+    {
+        return $this->belongsTo(LlmModel::class, 'active_model_id', 'llm_model_id');
     }
 
     /**
