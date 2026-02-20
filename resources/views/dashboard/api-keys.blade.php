@@ -1,96 +1,132 @@
 @extends('layouts.app')
 
 @section('title', 'API Keys')
-@section('subtitle', 'Manage your authentication keys to access the Apipod gateway.')
+@section('subtitle', 'Manage your API keys for accessing the APIPod proxy.')
 
 @section('content')
-    <!-- Tab Navigation (SumoPod Style) -->
-    <div class="inline-flex p-1 bg-gray-200/50 rounded-[10px] mb-8">
-        <a href="{{ route('home') }}" class="tab-button">Quick Start</a>
-        <a href="{{ route('dashboard.usage') }}" class="tab-button">Usage & Quotas</a>
-        <a href="{{ route('dashboard.models') }}" class="tab-button">Models</a>
-        <a href="{{ route('dashboard.api-keys') }}" class="tab-button active">API Keys</a>
-    </div>
-
-    <div class="max-w-4xl">
-        <!-- API Key Management Card -->
-        <div class="card mb-8">
-            <div class="px-8 py-6 border-b border-gray-100 flex items-center justify-between">
+    <div class="space-y-6">
+        {{-- Flash Messages --}}
+        @if(session('success'))
+            <div class="bg-green-50 border border-green-200 text-green-800 rounded-lg p-4 flex items-start gap-3">
+                <svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
                 <div>
-                    <h3 class="font-bold text-gray-900">Your API Keys</h3>
-                    <p class="text-xs text-gray-400 font-medium">Use these keys to authenticate your requests via the Apipod
-                        API.</p>
+                    <p class="font-medium">{{ session('success') }}</p>
+                    @if(session('new_key'))
+                        <div class="mt-2 bg-green-100 rounded-lg p-3">
+                            <p class="text-xs font-medium text-green-700 mb-1">⚠️ Copy this key now — you won't see it again:</p>
+                            <code class="mono text-sm break-all select-all">{{ session('new_key') }}</code>
+                        </div>
+                    @endif
                 </div>
-                <button class="btn-primary text-sm">Create New Key</button>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4">
+                <p class="font-medium">{{ session('error') }}</p>
+            </div>
+        @endif
+
+        {{-- Create Key Form --}}
+        <div class="card p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-gray-900">Create New Key</h2>
+                <span class="text-sm text-gray-500">{{ $apiKeys->where('is_active', true)->count() }} / {{ $maxKeys }}
+                    keys</span>
             </div>
 
-            <div class="divide-y divide-gray-100">
-                <div class="px-8 py-6 hover:bg-gray-50/50 transition-colors">
-                    <div class="flex items-center justify-between gap-4">
-                        <div class="flex-1">
-                            <div class="flex items-center gap-3 mb-2">
-                                <span class="font-bold text-gray-900 text-sm">Default Secret Key</span>
-                                <span
-                                    class="px-2 py-0.5 rounded bg-blue-50 text-blue-600 text-[10px] font-bold uppercase tracking-widest border border-blue-100">Active</span>
-                            </div>
-                            <div class="flex items-center gap-4">
-                                <code
-                                    class="bg-gray-100 px-3 py-1.5 rounded-lg text-xs font-bold text-gray-700 mono flex-1">
-                                        {{ $user->apitoken ? substr($user->apitoken, 0, 8) . '...' . substr($user->apitoken, -8) : 'No key generated yet.' }}
-                                    </code>
-                                <div class="flex items-center gap-2">
-                                    <button
-                                        class="text-blue-600 hover:text-blue-700 text-xs font-bold uppercase tracking-widest transition-colors flex items-center gap-1">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-                                        </svg>
-                                        Copy
-                                    </button>
-                                    <button
-                                        class="text-gray-400 hover:text-red-600 text-xs font-bold uppercase tracking-widest transition-colors flex items-center gap-1">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                        Revoke
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mt-4 flex items-center gap-6 text-[11px] font-bold text-gray-400 uppercase tracking-widest">
-                        <span>Created: {{ $user->created_at->format('M d, Y') }}</span>
-                        <span>Last Used:
-                            {{ $user->usageLogs()->max('timestamp') ? \Carbon\Carbon::parse($user->usageLogs()->max('timestamp'))->diffForHumans() : 'Never' }}</span>
-                    </div>
+            @if($canCreate)
+                <form method="POST" action="{{ route('dashboard.api-keys.create') }}" class="flex flex-col md:flex-row gap-3">
+                    @csrf
+                    <input type="text" name="name" placeholder="Key name (e.g. Production, Dev)" required
+                        class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                    <input type="number" name="token_limit" placeholder="Token limit (optional)" min="1"
+                        class="w-48 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                    <button type="submit" class="btn-primary whitespace-nowrap">Create Key</button>
+                </form>
+            @else
+                <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg p-4 text-sm">
+                    Maximum API keys ({{ $maxKeys }}) reached for your plan. <a href="{{ route('shop.index') }}"
+                        class="underline font-medium">Upgrade your plan</a> to create more.
                 </div>
-            </div>
+            @endif
         </div>
 
-        <!-- Security Best Practices -->
-        <div class="card p-8 bg-blue-50/50 border-blue-100">
-            <h3 class="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-                Security Recommendations
-            </h3>
-            <ul class="space-y-3 text-sm text-gray-500 font-medium">
-                <li class="flex items-start gap-3">
-                    <span class="text-blue-600 font-bold">•</span>
-                    Never share your API keys or expose them in client-side code (browsers/mobile apps).
-                </li>
-                <li class="flex items-start gap-3">
-                    <span class="text-blue-600 font-bold">•</span>
-                    Rotate your keys periodically to minimize risk in case of accidental leaks.
-                </li>
-                <li class="flex items-start gap-3">
-                    <span class="text-blue-600 font-bold">•</span>
-                    Use different keys for development, staging, and production environments.
-                </li>
-            </ul>
+        {{-- Keys List --}}
+        <div class="card">
+            <div class="p-6 border-b border-gray-100">
+                <h2 class="text-lg font-bold text-gray-900">Your API Keys</h2>
+            </div>
+
+            @if($apiKeys->isEmpty())
+                <div class="p-12 text-center">
+                    <svg class="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                    </svg>
+                    <p class="text-gray-500 text-sm">No API keys yet. Create one above to get started.</p>
+                </div>
+            @else
+                <div class="divide-y divide-gray-100">
+                    @foreach($apiKeys as $key)
+                        <div class="p-4 md:p-6 flex items-center justify-between gap-4 {{ !$key->is_active ? 'opacity-50' : '' }}">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2">
+                                    <p class="font-semibold text-gray-900 text-sm">{{ $key->name }}</p>
+                                    @if(!$key->is_active)
+                                        <span
+                                            class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Revoked</span>
+                                    @else
+                                        <span
+                                            class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Active</span>
+                                    @endif
+                                </div>
+                                <p class="mono text-sm text-gray-500 mt-1">{{ $key->key_prefix }}••••••••</p>
+                                <div class="flex gap-4 mt-2 text-xs text-gray-400">
+                                    <span>Created {{ $key->created_at->diffForHumans() }}</span>
+                                    @if($key->last_used_at)
+                                        <span>Last used {{ $key->last_used_at->diffForHumans() }}</span>
+                                    @else
+                                        <span>Never used</span>
+                                    @endif
+                                    @if($key->token_limit)
+                                        <span>Limit: {{ number_format($key->used_tokens) }}/{{ number_format($key->token_limit) }}
+                                            tokens</span>
+                                    @else
+                                        <span>Used: {{ number_format($key->used_tokens) }} tokens</span>
+                                    @endif
+                                </div>
+
+                                {{-- Per-key usage bar --}}
+                                @if($key->token_limit && $key->is_active)
+                                    @php
+                                        $keyPercent = round(($key->used_tokens / $key->token_limit) * 100, 1);
+                                        $keyPercent = min(100, $keyPercent);
+                                        $keyColor = $keyPercent > 90 ? 'bg-red-500' : ($keyPercent > 70 ? 'bg-yellow-500' : 'bg-blue-500');
+                                    @endphp
+                                    <div class="w-48 bg-gray-200 rounded-full h-1.5 mt-2">
+                                        <div class="{{ $keyColor }} h-1.5 rounded-full" style="width: {{ $keyPercent }}%"></div>
+                                    </div>
+                                @endif
+                            </div>
+
+                            @if($key->is_active)
+                                <form method="POST" action="{{ route('dashboard.api-keys.revoke', $key) }}"
+                                    onsubmit="return confirm('Are you sure you want to revoke this key? This cannot be undone.')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-600 hover:text-red-800 text-sm font-medium transition-colors">
+                                        Revoke
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+            @endif
         </div>
     </div>
 @endsection

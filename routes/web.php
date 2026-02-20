@@ -46,6 +46,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard/models', [DashboardController::class, 'models'])->name('dashboard.models');
     Route::get('/dashboard/usage', [DashboardController::class, 'usage'])->name('dashboard.usage');
     Route::get('/dashboard/api-keys', [DashboardController::class, 'apiKeys'])->name('dashboard.api-keys');
+    Route::post('/dashboard/api-keys', [DashboardController::class, 'createApiKey'])->name('dashboard.api-keys.create');
+    Route::delete('/dashboard/api-keys/{apiKey}', [DashboardController::class, 'revokeApiKey'])->name('dashboard.api-keys.revoke');
+    Route::get('/dashboard/plan', [DashboardController::class, 'planStatus'])->name('dashboard.plan');
     Route::get('/dashboard/analytics', [DashboardController::class, 'analytics'])->name('dashboard.analytics');
 
     Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');

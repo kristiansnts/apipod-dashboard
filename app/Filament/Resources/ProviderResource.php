@@ -58,9 +58,13 @@ class ProviderResource extends Resource
                     ->label('API Key')
                     ->rows(3)
                     ->columnSpanFull()
-                    ->helperText(fn (Forms\Get $get) => in_array($get('provider_type'), ['anthropic', 'openai'])
+                    ->helperText(fn(Forms\Get $get) => in_array($get('provider_type'), ['anthropic', 'openai'])
                         ? 'Optional if using Provider Accounts for pooling'
                         : null),
+                Forms\Components\Toggle::make('is_active')
+                    ->label('Active')
+                    ->default(true)
+                    ->helperText('Disable to stop all models from this provider'),
             ]);
     }
 
@@ -71,6 +75,7 @@ class ProviderResource extends Resource
                 Tables\Columns\TextColumn::make('name')->searchable(),
                 Tables\Columns\TextColumn::make('provider_type')->badge(),
                 Tables\Columns\TextColumn::make('base_url'),
+                Tables\Columns\IconColumn::make('is_active')->boolean()->sortable(),
                 Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable(),
             ])
             ->filters([])

@@ -38,6 +38,23 @@ class LlmModelResource extends Resource
                             ->default(0)
                             ->prefix('$'),
                     ])->columns(2),
+                Forms\Components\Section::make('Model Capabilities')
+                    ->schema([
+                        Forms\Components\Toggle::make('tool_support')
+                            ->label('Tool/Function Calling Support')
+                            ->default(false),
+                        Forms\Components\TextInput::make('max_context')
+                            ->label('Max Context Window')
+                            ->numeric()
+                            ->nullable()
+                            ->suffix('tokens')
+                            ->helperText('Maximum context length'),
+                        Forms\Components\TextInput::make('default_weight')
+                            ->label('Default Weight')
+                            ->numeric()
+                            ->default(100)
+                            ->helperText('Higher = more likely to be chosen in routing'),
+                    ])->columns(3),
                 Forms\Components\Section::make('Rate Limits')
                     ->description('Leave empty for unlimited')
                     ->schema([
@@ -69,26 +86,31 @@ class LlmModelResource extends Resource
                     ->label('Provider')
                     ->badge(),
                 Tables\Columns\TextColumn::make('input_cost_per_1m')
-                    ->label('Input Price / 1M')
+                    ->label('Input / 1M')
                     ->money('usd')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('output_cost_per_1m')
-                    ->label('Output Price / 1M')
+                    ->label('Output / 1M')
                     ->money('usd')
+                    ->sortable(),
+                Tables\Columns\IconColumn::make('tool_support')
+                    ->boolean()
+                    ->label('Tools'),
+                Tables\Columns\TextColumn::make('max_context')
+                    ->label('Context')
+                    ->numeric()
+                    ->placeholder('-')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('default_weight')
+                    ->label('Weight')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('rpm')
                     ->label('RPM')
                     ->placeholder('-')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('tpm')
-                    ->label('TPM')
-                    ->placeholder('-')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('rpd')
-                    ->label('RPD')
-                    ->placeholder('-')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([])
             ->actions([

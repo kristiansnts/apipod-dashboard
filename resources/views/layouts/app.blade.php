@@ -179,6 +179,14 @@
                         </svg>
                         Token Shop
                     </a>
+                    <a href="{{ route('dashboard.plan') }}"
+                        class="nav-link {{ request()->routeIs('dashboard.plan') ? 'active' : '' }}">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                        </svg>
+                        Plan Status
+                    </a>
                 </nav>
             </div>
 
@@ -236,7 +244,8 @@
                 </div>
                 <div class="flex-1 truncate">
                     <p class="text-[13px] font-bold text-gray-900 truncate">{{ auth()->user()->name }}</p>
-                    <p class="text-[11px] text-gray-500 font-medium truncate italic">Free Plan</p>
+                    <p class="text-[11px] text-gray-500 font-medium truncate italic">
+                        {{ auth()->user()->organization?->plan?->name ?? 'No Plan' }}</p>
                 </div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
