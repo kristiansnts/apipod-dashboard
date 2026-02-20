@@ -57,5 +57,5 @@ Route::middleware('auth')->group(function () {
     Route::get('/shop/failed/{payment}', [ShopController::class, 'failed'])->name('shop.failed');
 });
 
-// Xendit webhook (public route)
-Route::post('/webhooks/xendit', [PaymentController::class, 'webhook'])->name('webhooks.xendit');
+// Midtrans webhook (public route)
+Route::post('/webhooks/midtrans', [PaymentController::class, 'webhook'])->name('webhooks.midtrans');

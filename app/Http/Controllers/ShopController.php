@@ -6,16 +6,20 @@ use App\Models\Plan;
 use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Xendit\Configuration;
-use Xendit\Invoice\InvoiceApi;
-use Xendit\Invoice\CreateInvoiceRequest;
+use Midtrans\Config;
+use Midtrans\Snap;
 
 class ShopController extends Controller
 {
     public function __construct()
     {
         $this->middleware('auth');
-        Configuration::setXenditKey(config('services.xendit.secret_key'));
+
+        Config::$serverKey = config('services.midtrans.server_key');
+        Config::$clientKey = config('services.midtrans.client_key');
+        Config::$isProduction = config('services.midtrans.is_production');
+        Config::$isSanitized = config('services.midtrans.is_sanitized');
+        Config::$is3ds = config('services.midtrans.is_3ds');
     }
 
     public function index()
@@ -36,41 +40,67 @@ class ShopController extends Controller
 
         $user = Auth::user();
 
-        $externalId = 'inv-' . $user->id . '-' . time();
+        $orderId = 'ORDER-' . $user->id . '-' . time();
 
         $payment = Payment::create([
             'user_id' => $user->id,
             'plan_id' => $plan->id,
             'sub_id' => $plan->sub_id,
-            'external_id' => $externalId,
+            'external_id' => $orderId,
             'amount' => $plan->price,
             'status' => 'PENDING',
         ]);
 
-        try {
-            $apiInstance = new InvoiceApi();
-
-            $createInvoiceRequest = new CreateInvoiceRequest([
-                'external_id' => $externalId,
-                'amount' => $plan->price,
-                'description' => 'Purchase: ' . $plan->name,
-                'invoice_duration' => 86400,
-                'customer' => [
-                    'given_names' => $user->name,
-                    'email' => $user->email,
-                ],
-                'customer_notification_preference' => [
-                    'invoice_created' => ['email'],
-                    'invoice_reminder' => ['email'],
-                    'invoice_paid' => ['email'],
-                ],
-                'success_redirect_url' => route('shop.success', ['payment' => $payment->id]),
-                'failure_redirect_url' => route('shop.failed', ['payment' => $payment->id]),
+        // Handle free plans — activate immediately without payment gateway
+        if ($plan->price <= 0) {
+            $payment->update([
+                'status' => 'PAID',
+                'payment_method' => 'free',
+                'paid_at' => now(),
             ]);
 
-            $invoice = $apiInstance->createInvoice($createInvoiceRequest);
+            $user->sub_id = $plan->sub_id;
+            $user->active = true;
+            $user->expires_at = now()->addDays($plan->duration_days);
+            $user->tokens_used = 0;
+            $user->quota_reset_at = now()->addMonth();
+            $user->save();
 
-            return redirect($invoice->getInvoiceUrl());
+            return redirect()->route('shop.success', ['payment' => $payment->id]);
+        }
+
+        try {
+            $params = [
+                'transaction_details' => [
+                    'order_id' => $orderId,
+                    'gross_amount' => (int) $plan->price,
+                ],
+                'customer_details' => [
+                    'first_name' => $user->name,
+                    'email' => $user->email,
+                ],
+                'item_details' => [
+                    [
+                        'id' => $plan->id,
+                        'price' => (int) $plan->price,
+                        'quantity' => 1,
+                        'name' => $plan->name,
+                    ],
+                ],
+                'callbacks' => [
+                    'finish' => route('shop.success', ['payment' => $payment->id]),
+                ],
+            ];
+
+            $snapToken = Snap::getSnapToken($params);
+
+            return view('shop.checkout', [
+                'snapToken' => $snapToken,
+                'payment' => $payment,
+                'plan' => $plan,
+                'clientKey' => config('services.midtrans.client_key'),
+                'isProduction' => config('services.midtrans.is_production'),
+            ]);
         } catch (\Exception $e) {
             $payment->delete();
             return back()->with('error', 'Failed to create payment: ' . $e->getMessage());
