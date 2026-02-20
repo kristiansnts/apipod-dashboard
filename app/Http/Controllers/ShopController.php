@@ -6,17 +6,16 @@ use App\Models\Plan;
 use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Xendit\Xendit;
-use Xendit\Invoice;
+use Xendit\Configuration;
+use Xendit\Invoice\InvoiceApi;
+use Xendit\Invoice\CreateInvoiceRequest;
 
 class ShopController extends Controller
 {
     public function __construct()
     {
         $this->middleware('auth');
-        \Xendit\Configuration::getDefaultConfiguration()->setApiKey(config(
-            'services.xendit.secret_key'
-        ));
+        Configuration::setXenditKey(config('services.xendit.secret_key'));
     }
 
     public function index()
@@ -31,6 +30,10 @@ class ShopController extends Controller
 
     public function purchase(Request $request, Plan $plan)
     {
+        if ($request->isMethod('get')) {
+            return redirect()->route('shop.index');
+        }
+
         $user = Auth::user();
 
         $externalId = 'inv-' . $user->id . '-' . time();
@@ -45,7 +48,9 @@ class ShopController extends Controller
         ]);
 
         try {
-            $invoice = Invoice::create([
+            $apiInstance = new InvoiceApi();
+
+            $createInvoiceRequest = new CreateInvoiceRequest([
                 'external_id' => $externalId,
                 'amount' => $plan->price,
                 'description' => 'Purchase: ' . $plan->name,
@@ -63,7 +68,9 @@ class ShopController extends Controller
                 'failure_redirect_url' => route('shop.failed', ['payment' => $payment->id]),
             ]);
 
-            return redirect($invoice['invoice_url']);
+            $invoice = $apiInstance->createInvoice($createInvoiceRequest);
+
+            return redirect($invoice->getInvoiceUrl());
         } catch (\Exception $e) {
             $payment->delete();
             return back()->with('error', 'Failed to create payment: ' . $e->getMessage());
