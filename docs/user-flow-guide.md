@@ -15,7 +15,7 @@ Welcome to APIPod! This guide walks you through everything from first signup to 
 
 ## 📦 Step 2: Choose a Plan
 
-Navigate to **Token Shop** in the sidebar.
+Navigate to **Subscription** in the sidebar.
 
 | Plan | Price | Tokens | API Keys | Models |
 |------|-------|--------|----------|--------|

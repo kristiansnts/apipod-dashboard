@@ -12,6 +12,41 @@ use App\Http\Controllers\Auth\SocialiteController;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
 
+// CLI download — serves the CLI source as a tar.gz or zip
+Route::get('/cli/download', function (\Illuminate\Http\Request $request) {
+    $cliDir = base_path('cli');
+    $format = $request->query('format', 'tar.gz');
+    $tempDir = sys_get_temp_dir() . '/apipod-cli-' . uniqid();
+    $packageDir = $tempDir . '/apipod-cli';
+
+    mkdir($packageDir, 0755, true);
+    mkdir($packageDir . '/src', 0755, true);
+
+    copy($cliDir . '/package.json', $packageDir . '/package.json');
+    copy($cliDir . '/src/index.js', $packageDir . '/src/index.js');
+
+    if ($format === 'zip') {
+        $archivePath = $tempDir . '/apipod-cli.zip';
+        $zip = new \ZipArchive();
+        $zip->open($archivePath, \ZipArchive::CREATE);
+        $zip->addFile($packageDir . '/package.json', 'apipod-cli/package.json');
+        $zip->addFile($packageDir . '/src/index.js', 'apipod-cli/src/index.js');
+        $zip->close();
+        $contentType = 'application/zip';
+        $filename = 'apipod-cli.zip';
+    } else {
+        $archivePath = $tempDir . '/apipod-cli.tar.gz';
+        $cmd = sprintf('tar -czf %s -C %s apipod-cli', escapeshellarg($archivePath), escapeshellarg($tempDir));
+        exec($cmd);
+        $contentType = 'application/gzip';
+        $filename = 'apipod-cli.tar.gz';
+    }
+
+    return response()->download($archivePath, $filename, [
+        'Content-Type' => $contentType,
+    ])->deleteFileAfterSend(true);
+})->name('cli.download');
+
 Route::get('/', function () {
     if (Auth::check()) {
         return redirect()->route('home');
@@ -43,6 +78,7 @@ Route::get('/about', function () {
 
 Route::middleware('auth')->group(function () {
     Route::get('/home', [DashboardController::class, 'index'])->name('home');
+    Route::get('/dashboard/quickstart', [DashboardController::class, 'quickstart'])->name('dashboard.quickstart');
     Route::get('/dashboard/models', [DashboardController::class, 'models'])->name('dashboard.models');
     Route::get('/dashboard/usage', [DashboardController::class, 'usage'])->name('dashboard.usage');
     Route::get('/dashboard/api-keys', [DashboardController::class, 'apiKeys'])->name('dashboard.api-keys');
@@ -53,6 +89,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/dashboard/provider-keys', [DashboardController::class, 'storeProviderKey'])->name('dashboard.provider-keys.store');
     Route::delete('/dashboard/provider-keys/{providerKey}', [DashboardController::class, 'deleteProviderKey'])->name('dashboard.provider-keys.delete');
     Route::post('/dashboard/select-model', [DashboardController::class, 'selectModel'])->name('dashboard.select-model');
+    Route::get('/dashboard/model-weights', [DashboardController::class, 'modelWeights'])->name('dashboard.model-weights');
+    Route::post('/dashboard/model-weights', [DashboardController::class, 'updateModelWeights'])->name('dashboard.model-weights.update');
     Route::get('/dashboard/analytics', [DashboardController::class, 'analytics'])->name('dashboard.analytics');
 
     Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');

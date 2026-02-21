@@ -1,12 +1,14 @@
 <?php
 namespace App\Models;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
     use HasFactory, Notifiable;
     protected $fillable = [
@@ -56,6 +58,11 @@ class User extends Authenticatable
      * Check if user is admin of their organization.
      */
     public function isOrgAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function canAccessPanel(Panel $panel): bool
     {
         return $this->role === 'admin';
     }

@@ -6,7 +6,10 @@ use App\Models\LlmModel;
 use App\Models\ApiKey;
 use App\Models\OrgProviderKey;
 use App\Models\Provider;
+use App\Models\QuotaItem;
+use App\Models\TokenLedger;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -22,7 +25,20 @@ class DashboardController extends Controller
             $quotaPercent = max(0, min(100, $quotaPercent));
         }
 
-        return view('home', compact('user', 'org', 'plan', 'quotaPercent'));
+        $ledgerEntries = $org
+            ? $org->tokenLedger()->orderBy('created_at', 'desc')->paginate(10)
+            : collect();
+
+        $dailyRequestCount = $org
+            ? $org->tokenLedger()->whereDate('created_at', now()->toDateString())->where('type', 'like', '%usage%')->count()
+            : 0;
+
+        return view('home', compact('user', 'org', 'plan', 'quotaPercent', 'ledgerEntries', 'dailyRequestCount'));
+    }
+
+    public function quickstart()
+    {
+        return view('dashboard.quickstart');
     }
 
     public function models()
@@ -36,14 +52,11 @@ class DashboardController extends Controller
         $user = auth()->user();
         $org = $user->organization;
 
-        // Show ledger entries for the org
         $ledgerEntries = $org
             ? $org->tokenLedger()->orderBy('created_at', 'desc')->paginate(15)
             : collect();
 
-        $usageLogs = $user->usageLogs()->orderBy('usage_id', 'desc')->paginate(15);
-
-        return view('dashboard.usage', compact('usageLogs', 'user', 'org', 'ledgerEntries'));
+        return view('dashboard.usage', compact('user', 'org', 'ledgerEntries'));
     }
 
     public function apiKeys()
@@ -51,10 +64,8 @@ class DashboardController extends Controller
         $user = auth()->user();
         $org = $user->organization;
         $apiKeys = $org ? $org->apiKeys()->orderBy('created_at', 'desc')->get() : collect();
-        $canCreate = $org ? $org->canCreateApiKey() : false;
-        $maxKeys = $org?->plan?->max_api_keys ?? 0;
 
-        return view('dashboard.api-keys', compact('user', 'org', 'apiKeys', 'canCreate', 'maxKeys'));
+        return view('dashboard.api-keys', compact('user', 'org', 'apiKeys'));
     }
 
     public function createApiKey(Request $request)
@@ -69,10 +80,6 @@ class DashboardController extends Controller
 
         if (!$org) {
             return back()->with('error', 'No organization found.');
-        }
-
-        if (!$org->canCreateApiKey()) {
-            return back()->with('error', "Maximum API keys ({$org->plan->max_api_keys}) reached for your plan.");
         }
 
         $result = ApiKey::generateKey(
@@ -236,10 +243,156 @@ class DashboardController extends Controller
         return back()->with('success', 'Provider key removed.');
     }
 
+    public function modelWeights()
+    {
+        $user = auth()->user();
+        $org = $user->organization;
+        $plan = $org?->plan;
+
+        if (!$plan || $plan->is_byok) {
+            return redirect()->route('home')->with('error', 'Model weights are only available on platform plans.');
+        }
+
+        $subId = $plan->sub_id;
+
+        // Load existing quota items
+        $quotaItems = QuotaItem::where('sub_id', $subId)
+            ->with('llmModel.provider')
+            ->get();
+
+        // Auto-initialize if no quota items exist
+        if ($quotaItems->isEmpty()) {
+            $allowedModels = $plan->allowedModels;
+            if ($allowedModels->isNotEmpty()) {
+                $count = $allowedModels->count();
+                $baseWeight = intdiv(100, $count);
+                $remainder = 100 - ($baseWeight * $count);
+
+                foreach ($allowedModels->values() as $i => $model) {
+                    $weight = $model->default_weight ?? $baseWeight;
+                    if ($i === 0) {
+                        $weight += $remainder;
+                    }
+                    QuotaItem::create([
+                        'sub_id' => $subId,
+                        'llm_model_id' => $model->llm_model_id,
+                        'percentage_weight' => $weight,
+                    ]);
+                }
+
+                $quotaItems = QuotaItem::where('sub_id', $subId)
+                    ->with('llmModel.provider')
+                    ->get();
+            }
+        }
+
+        return view('dashboard.model-weights', compact('user', 'org', 'plan', 'quotaItems'));
+    }
+
+    public function updateModelWeights(Request $request)
+    {
+        $user = auth()->user();
+        $org = $user->organization;
+        $plan = $org?->plan;
+
+        if (!$plan || $plan->is_byok) {
+            return back()->with('error', 'Model weights are only available on platform plans.');
+        }
+
+        $request->validate([
+            'weights' => 'required|array',
+            'weights.*' => 'required|integer|min:0|max:100',
+        ]);
+
+        $weights = $request->input('weights');
+
+        if (array_sum($weights) !== 100) {
+            return back()->with('error', 'Weights must add up to 100%.')->withInput();
+        }
+
+        $subId = $plan->sub_id;
+
+        foreach ($weights as $quotaId => $weight) {
+            QuotaItem::where('quota_id', $quotaId)
+                ->where('sub_id', $subId)
+                ->update(['percentage_weight' => $weight]);
+        }
+
+        return back()->with('success', 'Model weights updated successfully.');
+    }
+
     public function analytics()
     {
         $user = auth()->user();
-        $logs = $user->usageLogs()->orderBy('usage_id', 'desc')->get();
-        return view('dashboard.analytics', compact('logs'));
+        $org = $user->organization;
+        $orgId = $org?->id;
+
+        $successRate  = null;
+        $cacheHitRate = null;
+        $avgLatency   = null;
+        $p95Latency   = null;
+        $totalRequests = 0;
+        $totalTokens   = 0;
+        $totalCost     = 0;
+        $modelDistribution = collect();
+        $recentLogs = collect();
+
+        if ($orgId) {
+            $ledgerQuery = DB::table('token_ledger')
+                ->where('org_id', $orgId)
+                ->whereIn('type', ['usage', 'byok_usage']);
+
+            $stats = (clone $ledgerQuery)->selectRaw('
+                COUNT(*) as total,
+                SUM(CASE WHEN status_code < 400 THEN 1 ELSE 0 END) as successes,
+                SUM(CASE WHEN cache_hit = true THEN 1 ELSE 0 END) as cache_hits,
+                AVG(CASE WHEN cache_hit = false THEN latency_ms END) as avg_latency,
+                SUM(input_tokens + output_tokens) as total_tokens,
+                SUM(cost_usd) as total_cost
+            ')->first();
+
+            if ($stats && $stats->total > 0) {
+                $totalRequests = $stats->total;
+                $totalTokens   = (int) $stats->total_tokens;
+                $totalCost     = (float) $stats->total_cost;
+                $successRate   = round(($stats->successes / $stats->total) * 100, 1);
+                $cacheHitRate  = round(($stats->cache_hits / $stats->total) * 100, 1);
+                $avgLatency    = $stats->avg_latency !== null ? (int) round($stats->avg_latency) : null;
+
+                $latencies = (clone $ledgerQuery)
+                    ->where('cache_hit', false)
+                    ->whereNotNull('latency_ms')
+                    ->orderBy('latency_ms')
+                    ->pluck('latency_ms');
+
+                if ($latencies->isNotEmpty()) {
+                    $idx = (int) ceil(0.95 * $latencies->count()) - 1;
+                    $p95Latency = $latencies->values()[$idx];
+                }
+            }
+
+            // Model distribution
+            $modelDistribution = (clone $ledgerQuery)
+                ->select('model')
+                ->selectRaw('COUNT(*) as count')
+                ->selectRaw('SUM(input_tokens + output_tokens) as tokens')
+                ->selectRaw('SUM(cost_usd) as cost')
+                ->groupBy('model')
+                ->orderByDesc('count')
+                ->get();
+
+            // Recent logs from token_ledger
+            $recentLogs = $org->tokenLedger()
+                ->whereIn('type', ['usage', 'byok_usage'])
+                ->orderBy('created_at', 'desc')
+                ->limit(20)
+                ->get();
+        }
+
+        return view('dashboard.analytics', compact(
+            'successRate', 'cacheHitRate', 'avgLatency', 'p95Latency',
+            'totalRequests', 'totalTokens', 'totalCost',
+            'modelDistribution', 'recentLogs'
+        ));
     }
 }

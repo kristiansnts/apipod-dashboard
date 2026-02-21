@@ -34,25 +34,17 @@
         <div class="card p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-bold text-gray-900">Create New Key</h2>
-                <span class="text-sm text-gray-500">{{ $apiKeys->where('is_active', true)->count() }} / {{ $maxKeys }}
-                    keys</span>
+                <span class="text-sm text-gray-500">{{ $apiKeys->where('is_active', true)->count() }} active keys</span>
             </div>
 
-            @if($canCreate)
-                <form method="POST" action="{{ route('dashboard.api-keys.create') }}" class="flex flex-col md:flex-row gap-3">
-                    @csrf
-                    <input type="text" name="name" placeholder="Key name (e.g. Production, Dev)" required
-                        class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
-                    <input type="number" name="token_limit" placeholder="Token limit (optional)" min="1"
-                        class="w-48 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
-                    <button type="submit" class="btn-primary whitespace-nowrap">Create Key</button>
-                </form>
-            @else
-                <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg p-4 text-sm">
-                    Maximum API keys ({{ $maxKeys }}) reached for your plan. <a href="{{ route('shop.index') }}"
-                        class="underline font-medium">Upgrade your plan</a> to create more.
-                </div>
-            @endif
+            <form method="POST" action="{{ route('dashboard.api-keys.create') }}" class="flex flex-col md:flex-row gap-3">
+                @csrf
+                <input type="text" name="name" placeholder="Key name (e.g. Production, Dev)" required
+                    class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                <input type="number" name="token_limit" placeholder="Token limit (optional)" min="1"
+                    class="w-48 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                <button type="submit" class="btn-primary whitespace-nowrap">Create Key</button>
+            </form>
         </div>
 
         {{-- Keys List --}}

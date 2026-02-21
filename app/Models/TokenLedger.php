@@ -23,6 +23,9 @@ class TokenLedger extends Model
         'cost_usd',
         'balance_after',
         'description',
+        'status_code',
+        'latency_ms',
+        'cache_hit',
     ];
 
     protected function casts(): array
@@ -32,6 +35,9 @@ class TokenLedger extends Model
             'output_tokens' => 'integer',
             'cost_usd' => 'decimal:6',
             'balance_after' => 'integer',
+            'status_code' => 'integer',
+            'latency_ms' => 'integer',
+            'cache_hit' => 'boolean',
             'created_at' => 'datetime',
         ];
     }

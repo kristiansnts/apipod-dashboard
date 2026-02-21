@@ -64,18 +64,6 @@ class Organization extends Model
     }
 
     /**
-     * Check if org can create more API keys based on plan limit.
-     */
-    public function canCreateApiKey(): bool
-    {
-        if (!$this->plan) {
-            return false;
-        }
-
-        return $this->apiKeys()->count() < $this->plan->max_api_keys;
-    }
-
-    /**
      * Check if org has token balance remaining.
      */
     public function hasTokenBalance(): bool

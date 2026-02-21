@@ -118,7 +118,7 @@
                             @endforeach
                         </select>
                     </div>
-                    <button type="submit" class="btn-primary whitespace-nowrap">Set Model</button>
+                    <button type="submit" class="btn-primary whitespace-nowrap hover:cursor-pointer">Set Model</button>
                 </form>
             @else
                 <p class="text-sm text-gray-500">Add a provider key first to see available models.</p>

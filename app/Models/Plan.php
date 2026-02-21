@@ -22,6 +22,7 @@ class Plan extends Model
         'rate_limit_rpm',
         'rate_limit_tpm',
         'is_byok',
+        'is_free',
         'daily_request_cap',
     ];
 
@@ -36,8 +37,14 @@ class Plan extends Model
             'rate_limit_rpm' => 'integer',
             'rate_limit_tpm' => 'integer',
             'is_byok' => 'boolean',
+            'is_free' => 'boolean',
             'daily_request_cap' => 'integer',
         ];
+    }
+
+    public static function freePlan(): ?self
+    {
+        return static::where('is_free', true)->where('is_active', true)->first();
     }
 
     public function subscription(): BelongsTo

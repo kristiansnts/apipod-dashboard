@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Subscription Shop')
+@section('title', 'Subscription')
 @section('subtitle', 'Select a plan to increase your token limits and access advanced provider orchestration.')
 
 @section('content')

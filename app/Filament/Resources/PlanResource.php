@@ -86,8 +86,11 @@ class PlanResource extends Resource
                             ->helperText('Leave empty to allow all models (BYOK/Free plan behavior)'),
                     ]),
 
-                Forms\Components\Section::make('BYOK Settings')
+                Forms\Components\Section::make('Plan Type')
                     ->schema([
+                        Forms\Components\Toggle::make('is_free')
+                            ->label('Free Plan')
+                            ->helperText('Auto-assigned to new users on signup. Only one plan should be marked as free.'),
                         Forms\Components\Toggle::make('is_byok')
                             ->label('BYOK Plan')
                             ->helperText('Users bring their own upstream API key. No platform token deduction.'),
@@ -95,8 +98,8 @@ class PlanResource extends Resource
                             ->label('Daily Request Cap')
                             ->numeric()
                             ->nullable()
-                            ->helperText('Max requests per day for BYOK users (empty = no cap)'),
-                    ])->columns(2),
+                            ->helperText('Max requests per day (empty = no cap)'),
+                    ])->columns(3),
             ]);
     }
 
@@ -129,6 +132,10 @@ class PlanResource extends Resource
                     ->label('Models')
                     ->sortable(),
                 Tables\Columns\IconColumn::make('is_active')
+                    ->boolean()
+                    ->sortable(),
+                Tables\Columns\IconColumn::make('is_free')
+                    ->label('Free')
                     ->boolean()
                     ->sortable(),
                 Tables\Columns\IconColumn::make('is_byok')

@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Payment;
 use App\Models\User;
+use App\Models\Organization;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Midtrans\Config;
 use Midtrans\Notification;
@@ -75,6 +77,27 @@ class PaymentController extends Controller
         if ($user && $payment->sub_id) {
             $plan = $payment->plan;
 
+            // Ensure user has an organization
+            $org = $user->organization;
+            if (!$org) {
+                $org = Organization::create([
+                    'name' => $user->name,
+                    'slug' => Str::slug($user->name) . '-' . Str::random(6),
+                    'is_active' => true,
+                    'token_balance' => 0,
+                ]);
+                $user->org_id = $org->id;
+                $user->role = 'admin';
+            }
+
+            // Link plan to organization and set token balance
+            $org->update([
+                'plan_id' => $plan->id,
+                'token_balance' => $plan->token_quota,
+                'quota_reset_at' => now()->addMonth(),
+                'is_active' => true,
+            ]);
+
             $user->sub_id = $payment->sub_id;
             $user->active = true;
 
@@ -91,6 +114,8 @@ class PaymentController extends Controller
 
             Log::info('User subscription updated via Midtrans', [
                 'user_id' => $user->id,
+                'org_id' => $org->id,
+                'plan_id' => $plan->id,
                 'sub_id' => $user->sub_id,
                 'expires_at' => $user->expires_at,
                 'payment_type' => $paymentType,

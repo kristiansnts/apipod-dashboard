@@ -68,7 +68,7 @@ class InternalApiController extends Controller
         if ($isByok) {
             $orgKeys = OrgProviderKey::where('org_id', $org->id)
                 ->where('is_active', true)
-                ->with('provider')
+                ->with(['provider.llmModels'])
                 ->get();
 
             foreach ($orgKeys as $orgKey) {
@@ -78,6 +78,7 @@ class InternalApiController extends Controller
                     'provider_name' => $orgKey->provider->name ?? '',
                     'base_url' => $orgKey->provider->base_url ?? '',
                     'api_key' => $orgKey->api_key, // decrypted by Laravel cast
+                    'models' => $orgKey->provider->llmModels->pluck('model_name')->values()->toArray(),
                 ];
             }
         }
@@ -143,6 +144,9 @@ class InternalApiController extends Controller
             'input_tokens' => 'required|integer|min:0',
             'output_tokens' => 'required|integer|min:0',
             'mode' => 'required|string|in:byok,platform',
+            'status_code' => 'nullable|integer',
+            'latency_ms' => 'nullable|integer|min:0',
+            'cache_hit' => 'nullable|boolean',
         ]);
 
         // Idempotency check
@@ -194,6 +198,9 @@ class InternalApiController extends Controller
                     'output_tokens' => $request->input('output_tokens'),
                     'cost_usd' => $costUsd,
                     'balance_after' => $org->token_balance,
+                    'status_code' => $request->input('status_code', 200),
+                    'latency_ms' => $request->input('latency_ms', 0),
+                    'cache_hit' => (bool) $request->input('cache_hit', false),
                 ]);
             });
 

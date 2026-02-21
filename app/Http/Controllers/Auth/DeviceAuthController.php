@@ -83,8 +83,8 @@ class DeviceAuthController extends Controller
 
         $user = Auth::user();
 
-        if (!$user->apitoken) {
-            return back()->withErrors(['user_code' => 'You do not have an API token. Please purchase a plan first.']);
+        if (!$user->organization?->plan) {
+            return back()->withErrors(['user_code' => 'You do not have an active plan. Please purchase a plan first.']);
         }
 
         $normalizedCode = strtoupper(str_replace([' ', '-'], '', $request->user_code));
@@ -105,13 +105,16 @@ class DeviceAuthController extends Controller
         $data['status'] = 'authorized';
 
         // Generate a new secure API key for this device
-        $result = ApiKey::generateKey($user->org_id, 'CLI: ' . ($request->header('User-Agent') ?? 'Unknown Device'));
+        $result = ApiKey::generateKey($user->org_id, 'CLI Device');
+
+        $org = $user->organization;
+        $plan = $org?->plan;
 
         $data['api_token'] = $result['plain_key'];
         $data['username'] = $user->name;
-        $data['plan'] = $user->plan?->sub_name ?? 'free';
-        $data['active_model'] = $user->organization?->activeModel?->model_name;
-        $data['is_byok'] = $user->plan?->is_byok ?? false;
+        $data['plan'] = $plan?->name ?? 'free';
+        $data['active_model'] = $org?->activeModel?->model_name;
+        $data['is_byok'] = $plan?->is_byok ?? false;
 
         Cache::put("device_auth:{$deviceCode}", $data, now()->addMinutes(self::TTL_MINUTES));
 

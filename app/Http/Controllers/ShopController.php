@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Plan;
 use App\Models\Payment;
+use App\Models\Organization;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Midtrans\Config;
 use Midtrans\Snap;
 
@@ -57,6 +59,27 @@ class ShopController extends Controller
                 'status' => 'PAID',
                 'payment_method' => 'free',
                 'paid_at' => now(),
+            ]);
+
+            // Ensure user has an organization
+            $org = $user->organization;
+            if (!$org) {
+                $org = Organization::create([
+                    'name' => $user->name,
+                    'slug' => Str::slug($user->name) . '-' . Str::random(6),
+                    'is_active' => true,
+                    'token_balance' => 0,
+                ]);
+                $user->org_id = $org->id;
+                $user->role = 'admin';
+            }
+
+            // Link plan to organization and set token balance
+            $org->update([
+                'plan_id' => $plan->id,
+                'token_balance' => $plan->token_quota,
+                'quota_reset_at' => now()->addMonth(),
+                'is_active' => true,
             ]);
 
             $user->sub_id = $plan->sub_id;

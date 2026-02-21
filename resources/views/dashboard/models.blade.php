@@ -4,13 +4,7 @@
 @section('subtitle', 'Browse available models, providers, and their corresponding token pricing.')
 
 @section('content')
-    <!-- Tab Navigation (SumoPod Style) -->
-    <div class="inline-flex p-1 bg-gray-200/50 rounded-[10px] mb-8">
-        <a href="{{ route('home') }}" class="tab-button">Quick Start</a>
-        <a href="{{ route('dashboard.usage') }}" class="tab-button">Usage & Quotas</a>
-        <a href="{{ route('dashboard.models') }}" class="tab-button active">Models</a>
-        <a href="{{ route('dashboard.api-keys') }}" class="tab-button">API Keys</a>
-    </div>
+
 
     <!-- Models Table Card -->
     <div class="card overflow-hidden">

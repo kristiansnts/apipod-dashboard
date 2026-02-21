@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\DeviceAuthController;
+use App\Http\Controllers\CliApiController;
 use App\Http\Controllers\UsageAnalyticsController;
 use App\Http\Controllers\InternalApiController;
 
@@ -14,6 +15,9 @@ Route::middleware('internal.secret')->prefix('internal')->group(function () {
     Route::get('/runtime-config', [InternalApiController::class, 'runtimeConfig']);
     Route::post('/commit-usage', [InternalApiController::class, 'commitUsage']);
 });
+
+// CLI setup endpoint (authenticated via apipod API key in Bearer header)
+Route::get('/cli/setup', [CliApiController::class, 'setup']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     // User analytics endpoints

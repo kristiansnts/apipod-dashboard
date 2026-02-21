@@ -1,101 +1,187 @@
 @extends('layouts.app')
 
-@section('title', 'AI Dashboard')
-@section('subtitle', 'Get started with Apipod and view your model orchestrations.')
+@section('title', 'Dashboard')
+@section('subtitle', 'Overview of your plan, quota, and usage history.')
 
 @section('content')
-    <!-- Tab Navigation (SumoPod Style) -->
-    <div class="inline-flex p-1 bg-gray-200/50 rounded-[10px] mb-8">
-        <a href="{{ route('home') }}" class="tab-button active">Quick Start</a>
-        <a href="{{ route('dashboard.usage') }}" class="tab-button">Usage & Quotas</a>
-        <a href="{{ route('dashboard.models') }}" class="tab-button">Models</a>
-        <a href="{{ route('dashboard.api-keys') }}" class="tab-button">API Keys</a>
-    </div>
-
-    <!-- Main Content Card -->
-    <div class="card p-8 lg:p-10 mb-8">
-        <div class="max-w-3xl">
-            <h2 class="text-xl font-bold text-gray-900 mb-4">Quick Start Guide</h2>
-            <p class="text-gray-500 mb-8 leading-relaxed font-medium">
-                Connect your application to Apipod's unified gateway and start routing requests to multiple AI providers
-                with a single API key.
-            </p>
-
-            <div class="space-y-10">
-                <!-- Step 1 -->
-                <div class="flex gap-6">
-                    <div
-                        class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center font-bold text-blue-600 text-sm border border-blue-100">
-                        1</div>
-                    <div>
-                        <h3 class="font-bold text-gray-900 mb-2">Create an API Key</h3>
-                        <p class="text-sm text-gray-500 mb-4 font-medium leading-relaxed">Generated a secure key to
-                            authenticate your requests. You can manage multiple keys for different projects.</p>
-                        <button class="btn-secondary text-sm">Manage API Keys</button>
-                    </div>
+    <div class="space-y-6">
+        {{-- Row 1: Current Plan & Quota Info --}}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {{-- Current Plan Card --}}
+            <div class="card p-6 lg:col-span-2">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest">Current Plan</h2>
+                    @if($plan)
+                        <span
+                            class="px-2.5 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-bold uppercase tracking-wider border border-blue-100">
+                            {{ $plan->name }}
+                        </span>
+                    @endif
                 </div>
 
-                <!-- Step 2 -->
-                <div class="flex gap-6">
-                    <div
-                        class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center font-bold text-blue-600 text-sm border border-blue-100">
-                        2</div>
-                    <div class="flex-1">
-                        <h3 class="font-bold text-gray-900 mb-2">Configure Endpoint</h3>
-                        <p class="text-sm text-gray-500 mb-4 font-medium leading-relaxed">Use our unified endpoint which
-                            automatically handles fallbacks and provider healthy checks.</p>
-
-                        <div
-                            class="bg-gray-50 border border-gray-100 rounded-lg p-4 mono text-xs text-gray-700 flex items-center justify-between">
-                            <span>https://api.apipod.com/v1</span>
-                            <button
-                                class="text-blue-600 font-bold uppercase tracking-widest text-[10px] hover:underline">Copy</button>
+                @if($plan)
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div>
+                            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">Monthly Quota</p>
+                            <p class="text-2xl font-extrabold text-gray-900 tracking-tight">
+                                {{ number_format($plan->token_quota) }} <span
+                                    class="text-sm font-bold text-gray-400">tokens</span></p>
+                        </div>
+                        <div>
+                            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">Max API Keys</p>
+                            <p class="text-2xl font-extrabold text-gray-900 tracking-tight">{{ $plan->max_api_keys }}</p>
+                        </div>
+                        <div>
+                            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">Price</p>
+                            <p class="text-2xl font-extrabold text-gray-900 tracking-tight">
+                                Rp{{ number_format($plan->price, 0, ',', '.') }}</p>
                         </div>
                     </div>
-                </div>
+                @else
+                    <div class="text-center py-10 bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
+                        <p class="text-sm font-medium text-gray-500 mb-4">No active plan found for your organization.</p>
+                        <a href="{{ route('shop.index') }}" class="btn-primary text-xs inline-flex items-center gap-2">
+                            Browse Subscription Plans →
+                        </a>
+                    </div>
+                @endif
+            </div>
 
-                <!-- Step 3 -->
-                <div class="flex gap-6">
-                    <div
-                        class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center font-bold text-blue-600 text-sm border border-blue-100">
-                        3</div>
+            {{-- Quota Reset Card --}}
+            <div class="card p-6">
+                <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-6">Next Quota Reset</h2>
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </div>
                     <div>
-                        <h3 class="font-bold text-gray-900 mb-2">Explore Documentation</h3>
-                        <p class="text-sm text-gray-500 mb-4 font-medium leading-relaxed">Look into our advanced
-                            orchestration features like model-to-model fallbacks and token budget management.</p>
-                        <a href="#" class="text-blue-600 text-sm font-bold hover:underline">Read Full Docs &rarr;</a>
+                        <p class="text-xl font-extrabold text-gray-900 tracking-tight">
+                            {{ $org?->quota_reset_at?->format('M d, Y') ?? 'Pending' }}
+                        </p>
+                        <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Automatic Refresh</p>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Usage Preview Grid (SumoPod Style minor stats) -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="card p-6">
-            <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4">Current Usage</h3>
-            <div class="flex items-end gap-2 mb-2">
-                <span
-                    class="text-3xl font-extrabold text-gray-900 tracking-tight">{{ number_format(auth()->user()->tokens_used) }}</span>
-                @php
-                    $limit = (auth()->user()->plan && auth()->user()->plan->subscription) ? auth()->user()->plan->subscription->monthly_token_limit : 1000000;
-                    $percentage = $limit > 0 ? (auth()->user()->tokens_used / $limit) * 100 : 0;
-                @endphp
-                <span class="text-sm font-bold text-gray-400 pb-1">/ {{ number_format($limit) }} Tokens</span>
-            </div>
-            <div class="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
-                <div class="bg-blue-600 h-full rounded-full" style="width: {{ min(100, $percentage) }}%"></div>
-            </div>
-        </div>
+        {{-- Row 2: Token Balance & Daily Request Progress --}}
+        @if($org && $plan)
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="card p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest">Token Balance</h2>
+                        <span class="text-sm font-bold text-gray-900">
+                            {{ number_format($org->token_balance) }} <span class="text-gray-400">remaining</span>
+                        </span>
+                    </div>
 
-        <div class="card p-6">
-            <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4">Active Keys</h3>
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                    <span class="text-sm font-bold text-gray-900">prod-backend-main</span>
+                    @php
+                        $percent = $plan->token_quota > 0 ? round(($org->token_balance / $plan->token_quota) * 100, 1) : 0;
+                        $percent = max(0, min(100, $percent));
+                        $barColor = $percent > 50 ? 'bg-blue-600' : ($percent > 20 ? 'bg-amber-500' : 'bg-red-500');
+                    @endphp
+
+                    <div class="w-full bg-gray-100 rounded-full h-3 mb-2">
+                        <div class="{{ $barColor }} h-3 rounded-full transition-all duration-1000" style="width: {{ $percent }}%"></div>
+                    </div>
+                    <div class="flex justify-between items-center mt-3">
+                        <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+                            Consumed: {{ number_format($plan->token_quota - $org->token_balance) }} tokens
+                        </p>
+                        <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+                            {{ $percent }}% Capacity
+                        </p>
+                    </div>
                 </div>
-                <span class="text-[11px] font-bold text-gray-400 mono">sk_live_...2d9f</span>
+
+                <div class="card p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest">Daily Requests</h2>
+                        <span class="text-sm font-bold text-gray-900">
+                            {{ number_format($dailyRequestCount) }} <span class="text-gray-400">/ {{ number_format($plan->daily_request_cap) }}</span>
+                        </span>
+                    </div>
+
+                    @php
+                        $dailyPercent = $plan->daily_request_cap > 0 ? round(($dailyRequestCount / $plan->daily_request_cap) * 100, 1) : 0;
+                        $dailyPercent = max(0, min(100, $dailyPercent));
+                        $dailyBarColor = $dailyPercent < 50 ? 'bg-blue-600' : ($dailyPercent < 80 ? 'bg-amber-500' : 'bg-red-500');
+                    @endphp
+
+                    <div class="w-full bg-gray-100 rounded-full h-3 mb-2">
+                        <div class="{{ $dailyBarColor }} h-3 rounded-full transition-all duration-1000" style="width: {{ $dailyPercent }}%"></div>
+                    </div>
+                    <div class="flex justify-between items-center mt-3">
+                        <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+                            {{ number_format($plan->daily_request_cap - $dailyRequestCount) }} requests left today
+                        </p>
+                        <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+                            {{ $dailyPercent }}% Used
+                        </p>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        {{-- Row 3: Usage History --}}
+        <div class="card overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                <h3 class="text-sm font-bold text-gray-900 mono">Usage History</h3>
+                <a href="{{ route('dashboard.analytics') }}"
+                    class="text-[11px] font-bold text-blue-600 uppercase tracking-widest hover:underline">View Analytics
+                    &rarr;</a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="bg-gray-50/20">
+                            <th class="px-6 py-4 text-[11px] font-bold text-gray-500 uppercase tracking-widest">Type</th>
+                            <th class="px-6 py-4 text-[11px] font-bold text-gray-500 uppercase tracking-widest">Model</th>
+                            <th class="px-6 py-4 text-[11px] font-bold text-gray-500 uppercase tracking-widest">Tokens</th>
+                            <th class="px-6 py-4 text-[11px] font-bold text-gray-500 uppercase tracking-widest">Cost</th>
+                            <th class="px-6 py-4 text-[11px] font-bold text-gray-500 uppercase tracking-widest">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 font-medium">
+                        @forelse($ledgerEntries as $entry)
+                            <tr class="hover:bg-gray-50/50 transition-colors">
+                                <td class="px-6 py-4">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase
+                                        {{ $entry->type === 'usage' ? 'bg-blue-50 text-blue-600 border border-blue-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100' }}">
+                                        {{ $entry->type }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="text-[13px] font-bold text-gray-900 mono">{{ $entry->model ?? '-' }}</span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-[13px] text-gray-900 font-bold">{{ number_format($entry->total_tokens) }}</div>
+                                    <div class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                                        {{ number_format($entry->input_tokens) }} in / {{ number_format($entry->output_tokens) }} out
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="text-[13px] text-gray-900 font-bold">${{ number_format($entry->cost_usd, 4) }}</span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="text-[12px] text-gray-600">{{ $entry->created_at->format('M d, H:i') }}</span>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="px-6 py-10 text-center text-gray-400 text-sm italic">
+                                    No activity recorded yet.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-100">
+                {{ $ledgerEntries->links() }}
             </div>
         </div>
     </div>

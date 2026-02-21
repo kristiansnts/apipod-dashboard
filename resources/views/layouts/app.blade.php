@@ -21,6 +21,7 @@
     <style>
         :root {
             --primary: #2563eb;
+            --primary-hover: #1d4ed8;
             --primary-light: #eff6ff;
             --bg-main: #f9fafb;
             --sidebar-bg: #ffffff;
@@ -74,29 +75,7 @@
             box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
         }
 
-        .tab-button {
-            padding: 0.5rem 1rem;
-            font-size: 0.875rem;
-            font-weight: 600;
-            border-radius: 0.375rem;
-            transition: all 0.2s;
-        }
 
-        .tab-button.active {
-            background-color: #ffffff;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-            border: 1px solid var(--border-color);
-            color: #111827;
-        }
-
-        .tab-button:not(.active) {
-            color: var(--text-muted);
-        }
-
-        .tab-button:not(.active):hover {
-            background-color: rgba(255, 255, 255, 0.5);
-            color: #111827;
-        }
 
         .btn-primary {
             background-color: var(--primary);
@@ -163,29 +142,13 @@
                         </svg>
                         Dashboard
                     </a>
-                    <a href="{{ route('dashboard.usage') }}"
-                        class="nav-link {{ request()->routeIs('dashboard.usage') ? 'active' : '' }}">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                        </svg>
-                        Usage & Quotas
-                    </a>
                     <a href="{{ route('shop.index') }}"
                         class="nav-link {{ request()->routeIs('shop.*') ? 'active' : '' }}">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
-                        Token Shop
-                    </a>
-                    <a href="{{ route('dashboard.plan') }}"
-                        class="nav-link {{ request()->routeIs('dashboard.plan') ? 'active' : '' }}">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                        </svg>
-                        Plan Status
+                        Subscription
                     </a>
                 </nav>
             </div>
@@ -194,7 +157,8 @@
             <div>
                 <h3 class="px-3 text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4">Learning</h3>
                 <nav class="space-y-1">
-                    <a href="{{ route('home') }}" class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}">
+                    <a href="{{ route('dashboard.quickstart') }}"
+                        class="nav-link {{ request()->routeIs('dashboard.quickstart') ? 'active' : '' }}">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.246.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -232,6 +196,15 @@
                                     d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                             </svg>
                             Provider Keys
+                        </a>
+                    @else
+                        <a href="{{ route('dashboard.model-weights') }}"
+                            class="nav-link {{ request()->routeIs('dashboard.model-weights') ? 'active' : '' }}">
+                            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                            </svg>
+                            Model Weights
                         </a>
                     @endif
                     <a href="{{ route('dashboard.analytics') }}"
