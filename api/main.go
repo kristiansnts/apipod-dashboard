@@ -45,7 +45,7 @@ clear_env = no
 php_admin_value[memory_limit] = 256M
 php_admin_value[error_log] = /dev/stderr
 php_admin_flag[log_errors] = on
-php_admin_value[display_errors] = Off
+php_admin_value[display_errors] = On
 php_admin_value[expose_php] = Off
 `
 
