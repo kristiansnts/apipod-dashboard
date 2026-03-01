@@ -44,8 +44,5 @@
     "REDIS_CACHE_DB": "0",
     "LOG_CHANNEL": "stderr",
     "PHP_FPM_URL": "https://dl.static-php.dev/static-php-cli/bulk/php-8.4.18-fpm-linux-x86_64.tar.gz"
-  },
-  "crons": [
-    { "path": "/", "schedule": "*/5 * * * *" }
-  ]
+  }
 }
