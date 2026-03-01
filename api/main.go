@@ -199,20 +199,49 @@ if (isset($_GET['__debug'])) {
         echo "providers() threw: " . get_class($e) . ': ' . $e->getMessage() . "\n";
         echo $e->getTraceAsString() . "\n";
     }
+
+    // Step through bootstrappers manually to find which one fails
+    echo "\n--- Running bootstrappers ---\n";
+    $bootstrappers = [
+        \Illuminate\Foundation\Bootstrap\LoadEnvironmentVariables::class,
+        \Illuminate\Foundation\Bootstrap\LoadConfiguration::class,
+        \Illuminate\Foundation\Bootstrap\HandleExceptions::class,
+        \Illuminate\Foundation\Bootstrap\RegisterFacades::class,
+        \Illuminate\Foundation\Bootstrap\RegisterProviders::class,
+        \Illuminate\Foundation\Bootstrap\BootProviders::class,
+    ];
+    foreach ($bootstrappers as $bootstrapper) {
+        try {
+            $app->make($bootstrapper)->bootstrap($app);
+            echo "OK: $bootstrapper\n";
+        } catch (\Throwable $e) {
+            echo "FAIL: $bootstrapper\n";
+            echo get_class($e) . ': ' . $e->getMessage() . "\n";
+            echo "in " . $e->getFile() . ':' . $e->getLine() . "\n";
+            echo $e->getTraceAsString() . "\n";
+            exit;
+        }
+    }
+    echo "view bound: " . ($app->bound('view') ? 'yes' : 'no') . "\n";
     exit;
 }
 
-// Debug: catch exceptions early to surface root cause
-set_exception_handler(function(\Throwable $e) {
+// Wrap in try/catch to surface the real exception (HandleExceptions would override set_exception_handler)
+try {
+    $app->handleRequest(Request::capture());
+} catch (\Throwable $e) {
     http_response_code(500);
     header('Content-Type: text/plain');
     echo get_class($e) . ': ' . $e->getMessage() . "\n";
     echo "in " . $e->getFile() . ':' . $e->getLine() . "\n\n";
     echo $e->getTraceAsString();
-    exit;
-});
-
-$app->handleRequest(Request::capture());
+    $prev = $e->getPrevious();
+    while ($prev) {
+        echo "\n\nCaused by: " . get_class($prev) . ': ' . $prev->getMessage() . "\n";
+        echo $prev->getTraceAsString();
+        $prev = $prev->getPrevious();
+    }
+}
 `, appRoot, appRoot)
 	if err := os.WriteFile(laravelEntryPath, []byte(entryPHP), 0644); err != nil {
 		return fmt.Errorf("write laravel entry: %w", err)
