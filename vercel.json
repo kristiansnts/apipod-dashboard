@@ -25,7 +25,9 @@
   "env": {
     "APP_ENV": "production",
     "APP_DEBUG": "false",
-    "APP_URL": "https://apipod-dashboard.vercel.app",
+    "APP_URL": "https://apipod.app",
+    "SESSION_DOMAIN": ".apipod.app",
+    "SANCTUM_STATEFUL_DOMAINS": "apipod.app",
     "SESSION_SECURE_COOKIE": "true",
     "APP_CONFIG_CACHE": "/tmp/config.php",
     "APP_EVENTS_CACHE": "/tmp/events.php",
