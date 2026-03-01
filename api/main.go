@@ -160,7 +160,6 @@ func bootstrap() error {
 
 	// 3. Write a custom PHP entry that loads vendor from /tmp/vendor
 	//    (/var/task is read-only so we can't symlink vendor there)
-	//    Uses Laravel 11+ handleRequest() API.
 	entryPHP := fmt.Sprintf(`<?php
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\PackageManifest;
@@ -179,10 +178,19 @@ require '/tmp/vendor/autoload.php';
 $app = require_once '%s/bootstrap/app.php';
 
 // PackageManifest defaults vendorPath to basePath/vendor, but vendor is at /tmp/vendor.
-// Override it before handleRequest() triggers registerConfiguredProviders().
 $manifest = new PackageManifest(new Filesystem, $app->basePath(), $app->getCachedPackagesPath());
 $manifest->vendorPath = '/tmp/vendor';
 $app->instance(PackageManifest::class, $manifest);
+
+// Debug: catch exceptions early to surface root cause
+set_exception_handler(function(\Throwable $e) {
+    http_response_code(500);
+    header('Content-Type: text/plain');
+    echo get_class($e) . ': ' . $e->getMessage() . "\n";
+    echo "in " . $e->getFile() . ':' . $e->getLine() . "\n\n";
+    echo $e->getTraceAsString();
+    exit;
+});
 
 $app->handleRequest(Request::capture());
 `, appRoot, appRoot)
