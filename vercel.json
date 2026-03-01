@@ -13,13 +13,13 @@
   },
   "routes": [
     {
-      "src": "/build/(.+)",
-      "dest": "/build/$1",
+      "src": "^/(build|assets)/(.+)",
+      "dest": "/$1/$2",
       "headers": { "cache-control": "public, max-age=31536000, immutable" }
     },
     {
-      "src": "^(.*)\\.(css|js|png|jpg|jpeg|gif|svg|ico|woff2?|ttf|eot|map)$",
-      "dest": "$0"
+      "src": "^/favicon\\.ico$",
+      "dest": "/favicon.ico"
     },
     {
       "src": "/(.*)",
@@ -29,19 +29,16 @@
   "env": {
     "APP_ENV": "production",
     "APP_DEBUG": "false",
-
     "APP_CONFIG_CACHE": "/tmp/config.php",
     "APP_EVENTS_CACHE": "/tmp/events.php",
     "APP_PACKAGES_CACHE": "/tmp/packages.php",
     "APP_ROUTES_CACHE": "/tmp/routes.php",
     "APP_SERVICES_CACHE": "/tmp/services.php",
     "VIEW_COMPILED_PATH": "/tmp/views",
-
     "CACHE_DRIVER": "array",
     "CACHE_STORE": "array",
     "SESSION_DRIVER": "cookie",
     "LOG_CHANNEL": "stderr",
-
     "PHP_FPM_URL": "https://dl.static-php.dev/static-php-cli/bulk/php-8.4.18-fpm-linux-x86_64.tar.gz"
   }
 }
