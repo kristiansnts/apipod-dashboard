@@ -160,16 +160,24 @@ func bootstrap() error {
 
 	// 3. Write a custom PHP entry that loads vendor from /tmp/vendor
 	//    (/var/task is read-only so we can't symlink vendor there)
+	//    Uses Laravel 11+ handleRequest() API.
 	entryPHP := fmt.Sprintf(`<?php
+use Illuminate\Foundation\Application;
+use Illuminate\Http\Request;
+
 define('LARAVEL_START', microtime(true));
+
+if (file_exists($maintenance = '%s/storage/framework/maintenance.php')) {
+    require $maintenance;
+}
+
 require '/tmp/vendor/autoload.php';
+
+/** @var Application $app */
 $app = require_once '%s/bootstrap/app.php';
-$kernel = $app->make(\Illuminate\Contracts\Http\Kernel::class);
-$response = $kernel->handle(
-    $request = \Illuminate\Http\Request::capture()
-)->send();
-$kernel->terminate($request, $response);
-`, appRoot)
+
+$app->handleRequest(Request::capture());
+`, appRoot, appRoot)
 	if err := os.WriteFile(laravelEntryPath, []byte(entryPHP), 0644); err != nil {
 		return fmt.Errorf("write laravel entry: %w", err)
 	}
