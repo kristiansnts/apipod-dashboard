@@ -182,6 +182,26 @@ $manifest = new PackageManifest(new Filesystem, $app->basePath(), $app->getCache
 $manifest->vendorPath = '/tmp/vendor';
 $app->instance(PackageManifest::class, $manifest);
 
+// Debug: dump env and manifest state before bootstrapping
+if (isset($_GET['__debug'])) {
+    header('Content-Type: text/plain');
+    echo "APP_PACKAGES_CACHE=" . (getenv('APP_PACKAGES_CACHE') ?: 'NOT SET') . "\n";
+    echo "basePath=" . $app->basePath() . "\n";
+    echo "manifestPath=" . $app->getCachedPackagesPath() . "\n";
+    echo "vendorPath=" . $manifest->vendorPath . "\n";
+    echo "installed.json exists=" . (file_exists('/tmp/vendor/composer/installed.json') ? 'yes' : 'no') . "\n";
+    echo "manifestPath writable=" . (is_writable(dirname($app->getCachedPackagesPath())) ? 'yes' : 'no') . "\n";
+    try {
+        $providers = $manifest->providers();
+        echo "providers count=" . count($providers) . "\n";
+        echo "first few providers: " . implode(', ', array_slice($providers, 0, 5)) . "\n";
+    } catch (\Throwable $e) {
+        echo "providers() threw: " . get_class($e) . ': ' . $e->getMessage() . "\n";
+        echo $e->getTraceAsString() . "\n";
+    }
+    exit;
+}
+
 // Debug: catch exceptions early to surface root cause
 set_exception_handler(function(\Throwable $e) {
     http_response_code(500);
