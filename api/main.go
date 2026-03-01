@@ -32,15 +32,15 @@ log_level = warning
 listen = {{.SocketPath}}
 listen.mode = 0666
 
-user = nobody
-group = nobody
-
 pm = dynamic
 pm.max_children = 5
 pm.start_servers = 1
 pm.min_spare_servers = 1
 pm.max_spare_servers = 3
 pm.max_requests = 500
+
+; Pass all Lambda env vars (APP_KEY, DB_*, etc.) through to PHP workers
+clear_env = no
 
 php_admin_value[memory_limit] = 256M
 php_admin_value[error_log] = /dev/stderr
