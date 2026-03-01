@@ -92,8 +92,8 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		// Check key files
 		for _, p := range []string{
 			"/tmp/php-fpm-bin", "/tmp/vendor/autoload.php",
-			laravelEntryPath, "/var/task/bootstrap/app.php",
-			"/var/task/public/index.php",
+			laravelEntryPath, "/var/task/vendor.tar.gz",
+			appRoot + "/bootstrap/app.php",
 		} {
 			if _, err := os.Stat(p); err == nil {
 				fmt.Fprintf(w, "[ok] %s\n", p)
@@ -118,10 +118,10 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 // ---------------------------------------------------------------------------
 
 func bootstrap() error {
-	appRoot = envOrDefault("VERCEL_APP_ROOT", "/var/task")
+	// Laravel files are copied to api/laravel/ by buildCommand, so they land at /var/task/laravel
+	appRoot = envOrDefault("VERCEL_APP_ROOT", "/var/task/laravel")
 
 	phpFpmDst := "/tmp/php-fpm-bin"
-	vendorDst := "/tmp"
 
 	// 1. Download and extract PHP-FPM binary (if not already in /tmp)
 	if _, err := os.Stat(phpFpmDst); os.IsNotExist(err) {
@@ -135,14 +135,22 @@ func bootstrap() error {
 		}
 	}
 
-	// 2. Download and extract vendor.tar.gz (if not already in /tmp)
+	// 2. Extract vendor — prefer bundled vendor.tar.gz (no cold-start download needed),
+	//    fall back to VENDOR_URL if not bundled.
 	if _, err := os.Stat("/tmp/vendor"); os.IsNotExist(err) {
-		vendorURL := os.Getenv("VENDOR_URL")
-		if vendorURL == "" {
-			return fmt.Errorf("VENDOR_URL environment variable is required (set it in Vercel project settings)")
-		}
-		if err := downloadAndExtractTarGz(vendorURL, vendorDst); err != nil {
-			return fmt.Errorf("download vendor: %w", err)
+		bundled := "/var/task/vendor.tar.gz"
+		if _, err := os.Stat(bundled); err == nil {
+			if err := extractTarGzFile(bundled, "/tmp"); err != nil {
+				return fmt.Errorf("extract bundled vendor: %w", err)
+			}
+		} else {
+			vendorURL := os.Getenv("VENDOR_URL")
+			if vendorURL == "" {
+				return fmt.Errorf("VENDOR_URL required (no bundled vendor.tar.gz found)")
+			}
+			if err := downloadAndExtractTarGz(vendorURL, "/tmp"); err != nil {
+				return fmt.Errorf("download vendor: %w", err)
+			}
 		}
 	}
 
@@ -264,7 +272,25 @@ func downloadAndExtractTarGz(url, dstDir string) error {
 		return err
 	}
 	defer gr.Close()
-	tr := tar.NewReader(gr)
+	return extractTar(tar.NewReader(gr), dstDir)
+}
+
+// extractTarGzFile extracts a local .tar.gz file to dstDir.
+func extractTarGzFile(srcPath, dstDir string) error {
+	f, err := os.Open(srcPath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	gr, err := gzip.NewReader(f)
+	if err != nil {
+		return err
+	}
+	defer gr.Close()
+	return extractTar(tar.NewReader(gr), dstDir)
+}
+
+func extractTar(tr *tar.Reader, dstDir string) error {
 	for {
 		hdr, err := tr.Next()
 		if err == io.EOF {
