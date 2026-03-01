@@ -161,17 +161,13 @@ func bootstrap() error {
 	// 3. Write a custom PHP entry that loads vendor from /tmp/vendor
 	//    (/var/task is read-only so we can't symlink vendor there)
 	//    Uses Laravel 11+ handleRequest() API.
-	//    PackageManifest reads COMPOSER_VENDOR_DIR to find packages, so we set it.
 	entryPHP := fmt.Sprintf(`<?php
 use Illuminate\Foundation\Application;
+use Illuminate\Foundation\PackageManifest;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Http\Request;
 
 define('LARAVEL_START', microtime(true));
-
-// Tell Laravel's PackageManifest where vendor actually is
-putenv('COMPOSER_VENDOR_DIR=/tmp/vendor');
-$_ENV['COMPOSER_VENDOR_DIR'] = '/tmp/vendor';
-$_SERVER['COMPOSER_VENDOR_DIR'] = '/tmp/vendor';
 
 if (file_exists($maintenance = '%s/storage/framework/maintenance.php')) {
     require $maintenance;
@@ -181,6 +177,12 @@ require '/tmp/vendor/autoload.php';
 
 /** @var Application $app */
 $app = require_once '%s/bootstrap/app.php';
+
+// PackageManifest defaults vendorPath to basePath/vendor, but vendor is at /tmp/vendor.
+// Override it before handleRequest() triggers registerConfiguredProviders().
+$manifest = new PackageManifest(new Filesystem, $app->basePath(), $app->getCachedPackagesPath());
+$manifest->vendorPath = '/tmp/vendor';
+$app->instance(PackageManifest::class, $manifest);
 
 $app->handleRequest(Request::capture());
 `, appRoot, appRoot)
