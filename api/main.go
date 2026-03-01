@@ -94,12 +94,22 @@ func bootstrap() error {
 
 	phpFpmDst := "/tmp/php-fpm-bin"
 
-	// 1. Download and extract PHP-FPM binary (if not already in /tmp)
+	// 1. Use bundled PHP-FPM binary (copied into api/ at build time by vercel-prepare.sh),
+	//    fall back to downloading it if not present.
 	if _, err := os.Stat(phpFpmDst); os.IsNotExist(err) {
-		phpFpmURL := envOrDefault("PHP_FPM_URL",
-			"https://dl.static-php.dev/static-php-cli/bulk/php-8.4.18-fpm-linux-x86_64.tar.gz")
-		if err := downloadAndExtractFile(phpFpmURL, phpFpmDst, "php-fpm"); err != nil {
-			return fmt.Errorf("download php-fpm: %w", err)
+		bundledBin := "/var/task/php-fpm-bin"
+		if _, err := os.Stat(bundledBin); err == nil {
+			// Copy bundled binary to /tmp (writable)
+			if err := copyFile(bundledBin, phpFpmDst); err != nil {
+				return fmt.Errorf("copy bundled php-fpm: %w", err)
+			}
+		} else {
+			// Fallback: download from internet
+			phpFpmURL := envOrDefault("PHP_FPM_URL",
+				"https://dl.static-php.dev/static-php-cli/bulk/php-8.4.18-fpm-linux-x86_64.tar.gz")
+			if err := downloadAndExtractFile(phpFpmURL, phpFpmDst, "php-fpm"); err != nil {
+				return fmt.Errorf("download php-fpm: %w", err)
+			}
 		}
 		if err := os.Chmod(phpFpmDst, 0755); err != nil {
 			return err
@@ -240,6 +250,22 @@ func waitForSocket(path string, timeout time.Duration) error {
 		time.Sleep(100 * time.Millisecond)
 	}
 	return fmt.Errorf("php-fpm socket %q not ready after %s", path, timeout)
+}
+
+// copyFile copies src to dst using io.Copy.
+func copyFile(src, dst string) error {
+	in, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+	out, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+	_, err = io.Copy(out, in)
+	return err
 }
 
 // downloadAndExtractFile downloads a .tar.gz from url, finds the file named
