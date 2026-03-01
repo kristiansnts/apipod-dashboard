@@ -74,11 +74,27 @@ func envOrDefault(key, def string) string {
 
 // Handler is called by the Vercel Go runtime on every HTTP request.
 func Handler(w http.ResponseWriter, r *http.Request) {
-	// Debug ping — remove after confirming Go function is reachable
+	// Debug endpoint — shows bootstrap status and env
 	if r.URL.Path == "/__ping" {
+		once.Do(func() { initErr = bootstrap() })
 		w.Header().Set("Content-Type", "text/plain")
-		fmt.Fprintf(w, "pong\nVENDOR_URL=%s\nAPP_ROOT=%s\n",
-			os.Getenv("VENDOR_URL"), appRoot)
+		if initErr != nil {
+			fmt.Fprintf(w, "bootstrap error: %v\n", initErr)
+		} else {
+			fmt.Fprintf(w, "ok\nVENDOR_URL=%s\nAPP_ROOT=%s\nSOCKET=%s\n",
+				os.Getenv("VENDOR_URL"), appRoot, socketPath)
+			// Check key files exist
+			for _, p := range []string{
+				"/tmp/php-fpm-bin", "/tmp/vendor/autoload.php",
+				laravelEntryPath, appRoot + "/bootstrap/app.php",
+			} {
+				if _, err := os.Stat(p); err == nil {
+					fmt.Fprintf(w, "  [ok] %s\n", p)
+				} else {
+					fmt.Fprintf(w, "  [missing] %s\n", p)
+				}
+			}
+		}
 		return
 	}
 	once.Do(func() { initErr = bootstrap() })
