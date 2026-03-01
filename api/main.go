@@ -45,7 +45,7 @@ clear_env = no
 php_admin_value[memory_limit] = 256M
 php_admin_value[error_log] = /dev/stderr
 php_admin_flag[log_errors] = on
-php_admin_value[display_errors] = On
+php_admin_value[display_errors] = Off
 php_admin_value[expose_php] = Off
 `
 
@@ -74,35 +74,6 @@ func envOrDefault(key, def string) string {
 
 // Handler is called by the Vercel Go runtime on every HTTP request.
 func Handler(w http.ResponseWriter, r *http.Request) {
-	// Debug endpoint — shows bootstrap status and env
-	if r.URL.Path == "/__ping" {
-		once.Do(func() { initErr = bootstrap() })
-		w.Header().Set("Content-Type", "text/plain")
-		if initErr != nil {
-			fmt.Fprintf(w, "bootstrap error: %v\n", initErr)
-		} else {
-			fmt.Fprintf(w, "ok\nAPP_ROOT=%s\n\n", appRoot)
-		}
-		// List /var/task contents
-		fmt.Fprintf(w, "=== /var/task ===\n")
-		entries, _ := os.ReadDir("/var/task")
-		for _, e := range entries {
-			fmt.Fprintf(w, "  %s (dir=%v)\n", e.Name(), e.IsDir())
-		}
-		// Check key files
-		for _, p := range []string{
-			"/tmp/php-fpm-bin", "/tmp/vendor/autoload.php",
-			laravelEntryPath, "/var/task/vendor.tar.gz",
-			appRoot + "/bootstrap/app.php",
-		} {
-			if _, err := os.Stat(p); err == nil {
-				fmt.Fprintf(w, "[ok] %s\n", p)
-			} else {
-				fmt.Fprintf(w, "[missing] %s\n", p)
-			}
-		}
-		return
-	}
 	once.Do(func() { initErr = bootstrap() })
 	if initErr != nil {
 		http.Error(w, fmt.Sprintf("bootstrap error: %v", initErr), http.StatusInternalServerError)
@@ -193,51 +164,6 @@ $manifest = new PackageManifest(new Filesystem, $app->basePath(), $app->getCache
 $manifest->vendorPath = '/tmp/vendor';
 $app->instance(PackageManifest::class, $manifest);
 
-// Debug: dump env and manifest state before bootstrapping
-if (isset($_GET['__debug'])) {
-    header('Content-Type: text/plain');
-    echo "APP_PACKAGES_CACHE=" . (getenv('APP_PACKAGES_CACHE') ?: 'NOT SET') . "\n";
-    echo "basePath=" . $app->basePath() . "\n";
-    echo "manifestPath=" . $app->getCachedPackagesPath() . "\n";
-    echo "vendorPath=" . $manifest->vendorPath . "\n";
-    echo "installed.json exists=" . (file_exists('/tmp/vendor/composer/installed.json') ? 'yes' : 'no') . "\n";
-    echo "manifestPath writable=" . (is_writable(dirname($app->getCachedPackagesPath())) ? 'yes' : 'no') . "\n";
-    try {
-        $providers = $manifest->providers();
-        echo "providers count=" . count($providers) . "\n";
-        echo "first few providers: " . implode(', ', array_slice($providers, 0, 5)) . "\n";
-    } catch (\Throwable $e) {
-        echo "providers() threw: " . get_class($e) . ': ' . $e->getMessage() . "\n";
-        echo $e->getTraceAsString() . "\n";
-    }
-
-    // Step through bootstrappers manually to find which one fails
-    echo "\n--- Running bootstrappers ---\n";
-    $bootstrappers = [
-        \Illuminate\Foundation\Bootstrap\LoadEnvironmentVariables::class,
-        \Illuminate\Foundation\Bootstrap\LoadConfiguration::class,
-        \Illuminate\Foundation\Bootstrap\HandleExceptions::class,
-        \Illuminate\Foundation\Bootstrap\RegisterFacades::class,
-        \Illuminate\Foundation\Bootstrap\RegisterProviders::class,
-        \Illuminate\Foundation\Bootstrap\BootProviders::class,
-    ];
-    foreach ($bootstrappers as $bootstrapper) {
-        try {
-            $app->make($bootstrapper)->bootstrap($app);
-            echo "OK: $bootstrapper\n";
-        } catch (\Throwable $e) {
-            echo "FAIL: $bootstrapper\n";
-            echo get_class($e) . ': ' . $e->getMessage() . "\n";
-            echo "in " . $e->getFile() . ':' . $e->getLine() . "\n";
-            echo $e->getTraceAsString() . "\n";
-            exit;
-        }
-    }
-    echo "view bound: " . ($app->bound('view') ? 'yes' : 'no') . "\n";
-    exit;
-}
-
-// Wrap in try/catch to surface the real exception (HandleExceptions would override set_exception_handler)
 try {
     $app->handleRequest(Request::capture());
 } catch (\Throwable $e) {
