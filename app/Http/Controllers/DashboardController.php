@@ -27,7 +27,7 @@ class DashboardController extends Controller
 
         $ledgerEntries = $org
             ? $org->tokenLedger()->orderBy('created_at', 'desc')->paginate(10)
-            : collect();
+            : new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10);
 
         $dailyRequestCount = $org
             ? $org->tokenLedger()->whereDate('created_at', now()->toDateString())->where('type', 'like', '%usage%')->count()
@@ -54,7 +54,7 @@ class DashboardController extends Controller
 
         $ledgerEntries = $org
             ? $org->tokenLedger()->orderBy('created_at', 'desc')->paginate(15)
-            : collect();
+            : new \Illuminate\Pagination\LengthAwarePaginator([], 0, 15);
 
         return view('dashboard.usage', compact('user', 'org', 'ledgerEntries'));
     }
