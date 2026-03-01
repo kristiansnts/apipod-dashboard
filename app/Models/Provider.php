@@ -6,7 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class Provider extends Model
 {
-    protected $fillable = ['name', 'base_url', 'provider_type', 'api_key'];
+    protected $fillable = ['name', 'base_url', 'provider_type', 'api_key', 'is_active'];
+
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+        ];
+    }
 
     public function llmModels()
     {

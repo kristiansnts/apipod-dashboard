@@ -1,7 +1,23 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\DeviceAuthController;
+use App\Http\Controllers\CliApiController;
 use App\Http\Controllers\UsageAnalyticsController;
+use App\Http\Controllers\InternalApiController;
+
+// Device auth endpoints (public, called by CLI)
+Route::post('/auth/device/code', [DeviceAuthController::class, 'requestCode']);
+Route::post('/auth/device/token', [DeviceAuthController::class, 'pollToken']);
+
+// Internal API for Go proxy (protected by shared secret)
+Route::middleware('internal.secret')->prefix('internal')->group(function () {
+    Route::get('/runtime-config', [InternalApiController::class, 'runtimeConfig']);
+    Route::post('/commit-usage', [InternalApiController::class, 'commitUsage']);
+});
+
+// CLI setup endpoint (authenticated via apipod API key in Bearer header)
+Route::get('/cli/setup', [CliApiController::class, 'setup']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     // User analytics endpoints
@@ -11,7 +27,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/usage/daily', [UsageAnalyticsController::class, 'getDailyAnalytics']);
     Route::get('/usage/hourly', [UsageAnalyticsController::class, 'getHourlyAnalytics']);
     Route::get('/usage/top-models', [UsageAnalyticsController::class, 'getTopModels']);
-    
+
     // Admin analytics endpoint
     Route::middleware(['admin'])->group(function () {
         Route::get('/usage/all-users', [UsageAnalyticsController::class, 'getAllUsersSummary']);

@@ -1,68 +1,103 @@
 @extends('layouts.guest')
 
-@section('title', 'Authorize Device — API Pod')
+@section('title', 'Authorize Device')
 
 @section('content')
-<div class="w-full max-w-md bg-white dark:bg-[#161615] p-8 rounded-lg shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] dark:shadow-[inset_0px_0px_0px_1px_#fffaed2d]">
-    <div class="text-center mb-6">
-        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#F53003]/10 mb-4">
-            <i class="fas fa-terminal text-2xl text-[#F53003]"></i>
+    <div class="w-full max-w-md light-card p-8 lg:p-10 rounded-[32px] animate-fade-in text-center">
+        <div class="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-blue-50 mb-8 border border-blue-100">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-600" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
         </div>
-        <h2 class="text-2xl font-bold text-[#1b1b18] dark:text-[#EDEDEC]">Authorize Device</h2>
-        <p class="text-sm text-[#706f6c] dark:text-[#A1A09A] mt-2">Enter the code shown in your terminal to connect <strong>apipod-cli</strong> to your account.</p>
-    </div>
 
-    @if (session('success'))
-        <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 px-4 py-3 rounded-sm mb-4">
-            <div class="flex items-center">
-                <i class="fas fa-check-circle mr-2"></i>
+        <h2 class="text-3xl font-extrabold text-gray-900 mb-4">Authorize CLI</h2>
+        <p class="text-gray-500 mb-10 leading-relaxed font-medium">
+            Enter the authorization code from your terminal to connect <span
+                class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded font-mono text-sm">apipod-cli</span> to your
+            account.
+        </p>
+
+        @if (session('success'))
+            <div
+                class="bg-emerald-50 border border-emerald-100 text-emerald-600 px-4 py-3 rounded-2xl mb-8 flex items-center justify-center gap-2 text-sm font-medium">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clip-rule="evenodd" />
+                </svg>
                 <span>{{ session('success') }}</span>
             </div>
-        </div>
-    @endif
+        @endif
 
-    @if ($errors->any())
-        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-sm mb-4">
-            @foreach ($errors->all() as $error)
-                <p>{{ $error }}</p>
-            @endforeach
-        </div>
-    @endif
-
-    @auth
-        <form method="POST" action="{{ route('device.authorize') }}">
-            @csrf
-            <div class="mb-6">
-                <label for="user_code" class="block text-[#1b1b18] dark:text-[#EDEDEC] text-sm font-bold mb-2">Device Code</label>
-                <input type="text" name="user_code" id="user_code" value="{{ old('user_code') }}"
-                       placeholder="XXXX-XXXX"
-                       autocomplete="off"
-                       autofocus
-                       class="shadow appearance-none border border-[#e3e3e0] dark:border-[#3E3E3A] rounded w-full py-3 px-4 text-center text-2xl font-mono tracking-[0.3em] text-[#1b1b18] dark:text-[#EDEDEC] bg-white dark:bg-[#1b1b18] leading-tight focus:outline-none focus:shadow-outline focus:border-[#F53003] uppercase"
-                       maxlength="9"
-                       required>
+        @if ($errors->any())
+            <div class="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-2xl mb-8 text-sm font-medium">
+                @foreach ($errors->all() as $error)
+                    <p>{{ $error }}</p>
+                @endforeach
             </div>
+        @endif
 
-            <button type="submit" class="w-full bg-[#F53003] hover:bg-[#d92902] text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline transition-colors">
-                <i class="fas fa-check mr-2"></i>Authorize
-            </button>
-        </form>
+        @auth
+            <form method="POST" action="{{ route('device.authorize') }}" class="space-y-8">
+                @csrf
+                <div>
+                    <label for="user_code"
+                        class="block text-gray-400 text-[11px] font-bold mb-3 uppercase tracking-[0.2em]">Device
+                        Code</label>
+                    <input type="text" name="user_code" id="user_code" value="{{ old('user_code') }}" placeholder="XXXX-XXXX"
+                        autocomplete="off" autofocus
+                        class="w-full bg-gray-50 border border-gray-100 rounded-2xl py-5 text-center text-3xl font-bold font-mono tracking-[0.2em] text-gray-900 leading-tight focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all uppercase placeholder:text-gray-200"
+                        maxlength="9" required>
+                </div>
 
-        <div class="mt-4 text-center">
-            <p class="text-xs text-[#706f6c] dark:text-[#A1A09A]">
-                Logged in as <strong>{{ Auth::user()->name }}</strong>
-            </p>
-        </div>
-    @else
-        <div class="text-center">
-            <p class="text-sm text-[#706f6c] dark:text-[#A1A09A] mb-4">You need to log in first to authorize a device.</p>
-            <a href="{{ route('login') }}?redirect={{ urlencode(route('device.show')) }}" class="w-full inline-block bg-[#1b1b18] dark:bg-[#eeeeec] hover:bg-black dark:hover:bg-white text-white dark:text-[#1C1C1A] font-bold py-2 px-4 rounded-sm transition-colors text-sm text-center">
-                Log In
-            </a>
-            <div class="mt-3">
-                <a href="{{ route('register') }}" class="text-sm text-[#F53003] hover:text-[#d92902] hover:underline">Don't have an account? Register</a>
+                <button type="submit"
+                    class="w-full btn-blue py-4 rounded-2xl text-white font-extrabold text-lg shadow-lg shadow-blue-600/10 transition-all flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Authorize Device
+                </button>
+            </form>
+
+            <div class="mt-8 pt-8 border-t border-gray-50">
+                <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">
+                    Logged in as <span class="text-blue-600">{{ Auth::user()->name }}</span>
+                </p>
             </div>
-        </div>
-    @endauth
-</div>
+        @else
+            <div class="space-y-6">
+                <p class="text-gray-500 font-medium leading-relaxed">Please sign in to your Apipod account to authorize this
+                    device.</p>
+                <a href="{{ route('login') }}?redirect={{ urlencode(route('device.show')) }}"
+                    class="w-full btn-blue inline-flex items-center justify-center py-4 rounded-2xl text-white font-extrabold text-lg transition-all shadow-lg shadow-blue-600/10">
+                    Sign In to Continue
+                </a>
+                <p class="text-sm text-gray-500 font-medium">
+                    Don't have an account? <a href="{{ route('register') }}"
+                        class="text-blue-600 font-extrabold hover:underline ml-1">Register now</a>
+                </p>
+            </div>
+        @endauth
+    </div>
+
+    <style>
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fade-in 0.6s ease-out forwards;
+        }
+    </style>
 @endsection

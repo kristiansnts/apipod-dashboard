@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\PlanResource\Pages;
 use App\Models\Plan;
 use App\Models\Subscription;
+use App\Models\LlmModel;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -44,12 +45,61 @@ class PlanResource extends Resource
                             ->label('Subscription')
                             ->options(Subscription::all()->pluck('sub_name', 'sub_id'))
                             ->searchable()
-                            ->required(),
+                            ->nullable(),
                         Forms\Components\Toggle::make('is_active')
                             ->label('Active')
                             ->default(true)
                             ->required(),
-                    ])->columns(2)
+                    ])->columns(2),
+
+                Forms\Components\Section::make('Quota & Limits')
+                    ->schema([
+                        Forms\Components\TextInput::make('token_quota')
+                            ->label('Monthly Token Quota')
+                            ->numeric()
+                            ->default(0)
+                            ->helperText('Total tokens per billing cycle (e.g. 3000000 for 3M)'),
+                        Forms\Components\TextInput::make('max_api_keys')
+                            ->label('Max API Keys')
+                            ->numeric()
+                            ->default(1)
+                            ->minValue(1),
+                        Forms\Components\TextInput::make('rate_limit_rpm')
+                            ->label('Rate Limit RPM')
+                            ->numeric()
+                            ->nullable()
+                            ->helperText('Requests per minute (empty = unlimited)'),
+                        Forms\Components\TextInput::make('rate_limit_tpm')
+                            ->label('Rate Limit TPM')
+                            ->numeric()
+                            ->nullable()
+                            ->helperText('Tokens per minute (empty = unlimited)'),
+                    ])->columns(2),
+
+                Forms\Components\Section::make('Allowed Models')
+                    ->schema([
+                        Forms\Components\Select::make('allowedModels')
+                            ->label('Models accessible with this plan')
+                            ->multiple()
+                            ->relationship('allowedModels', 'model_name')
+                            ->preload()
+                            ->helperText('Leave empty to allow all models (BYOK/Free plan behavior)'),
+                    ]),
+
+                Forms\Components\Section::make('Plan Type')
+                    ->schema([
+                        Forms\Components\Toggle::make('is_free')
+                            ->label('Free Plan')
+                            ->helperText('Auto-assigned to new users on signup. Only one plan should be marked as free.'),
+                        Forms\Components\Toggle::make('is_byok')
+                            ->label('BYOK Plan')
+                            ->helperText('Users bring their own upstream API key. No platform token deduction.'),
+                        Forms\Components\TextInput::make('daily_request_cap')
+                            ->label('Daily Request Cap')
+                            ->numeric()
+                            ->nullable()
+                            ->helperText('Max requests per day (empty = no cap)'),
+                    ])->columns(3),
             ]);
     }
 
@@ -63,13 +113,33 @@ class PlanResource extends Resource
                 Tables\Columns\TextColumn::make('price')
                     ->money('IDR')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('token_quota')
+                    ->label('Token Quota')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('max_api_keys')
+                    ->label('Max Keys')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('duration_days')
                     ->suffix(' days')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('subscription.sub_name')
                     ->label('Subscription')
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('allowed_models_count')
+                    ->counts('allowedModels')
+                    ->label('Models')
+                    ->sortable(),
                 Tables\Columns\IconColumn::make('is_active')
+                    ->boolean()
+                    ->sortable(),
+                Tables\Columns\IconColumn::make('is_free')
+                    ->label('Free')
+                    ->boolean()
+                    ->sortable(),
+                Tables\Columns\IconColumn::make('is_byok')
+                    ->label('BYOK')
                     ->boolean()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')

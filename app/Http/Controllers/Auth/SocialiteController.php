@@ -7,6 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
+use App\Models\Organization;
+use App\Models\Plan;
+use Illuminate\Support\Str;
 
 class SocialiteController extends Controller
 {
@@ -18,12 +21,26 @@ class SocialiteController extends Controller
         $user = User::where('email', $socialUser->getEmail())->first();
 
         if (! $user) {
+            $name = $socialUser->getName() ?? $socialUser->getNickname() ?? $socialUser->getEmail();
+
+            $freePlan = Plan::freePlan();
+
+            $org = Organization::create([
+                'name' => $name,
+                'slug' => Str::slug($name) . '-' . Str::random(6),
+                'is_active' => true,
+                'token_balance' => $freePlan?->token_quota ?? 0,
+                'plan_id' => $freePlan?->id,
+            ]);
+
             $user = User::create([
-                'name' => $socialUser->getName() ?? $socialUser->getNickname() ?? $socialUser->getEmail(),
+                'name' => $name,
                 'email' => $socialUser->getEmail(),
                 'provider_name' => $provider,
                 'provider_id' => $socialUser->getId(),
-                'password' => null, // Password is not required for OAuth users
+                'password' => null,
+                'org_id' => $org->id,
+                'role' => 'owner',
             ]);
         } else {
             // Update existing user with provider info if not already set
