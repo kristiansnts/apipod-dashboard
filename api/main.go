@@ -81,18 +81,24 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		if initErr != nil {
 			fmt.Fprintf(w, "bootstrap error: %v\n", initErr)
 		} else {
-			fmt.Fprintf(w, "ok\nVENDOR_URL=%s\nAPP_ROOT=%s\nSOCKET=%s\n",
-				os.Getenv("VENDOR_URL"), appRoot, socketPath)
-			// Check key files exist
-			for _, p := range []string{
-				"/tmp/php-fpm-bin", "/tmp/vendor/autoload.php",
-				laravelEntryPath, appRoot + "/bootstrap/app.php",
-			} {
-				if _, err := os.Stat(p); err == nil {
-					fmt.Fprintf(w, "  [ok] %s\n", p)
-				} else {
-					fmt.Fprintf(w, "  [missing] %s\n", p)
-				}
+			fmt.Fprintf(w, "ok\nAPP_ROOT=%s\n\n", appRoot)
+		}
+		// List /var/task contents
+		fmt.Fprintf(w, "=== /var/task ===\n")
+		entries, _ := os.ReadDir("/var/task")
+		for _, e := range entries {
+			fmt.Fprintf(w, "  %s (dir=%v)\n", e.Name(), e.IsDir())
+		}
+		// Check key files
+		for _, p := range []string{
+			"/tmp/php-fpm-bin", "/tmp/vendor/autoload.php",
+			laravelEntryPath, "/var/task/bootstrap/app.php",
+			"/var/task/public/index.php",
+		} {
+			if _, err := os.Stat(p); err == nil {
+				fmt.Fprintf(w, "[ok] %s\n", p)
+			} else {
+				fmt.Fprintf(w, "[missing] %s\n", p)
 			}
 		}
 		return
