@@ -176,6 +176,9 @@ require '/tmp/vendor/autoload.php';
 /** @var Application $app */
 $app = require_once '%s/bootstrap/app.php';
 
+// Vendor is at /tmp/vendor (downloaded at cold start), not the default basePath/vendor
+$app->useVendorPath('/tmp/vendor');
+
 $app->handleRequest(Request::capture());
 `, appRoot, appRoot)
 	if err := os.WriteFile(laravelEntryPath, []byte(entryPHP), 0644); err != nil {
