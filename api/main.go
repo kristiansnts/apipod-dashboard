@@ -74,6 +74,13 @@ func envOrDefault(key, def string) string {
 
 // Handler is called by the Vercel Go runtime on every HTTP request.
 func Handler(w http.ResponseWriter, r *http.Request) {
+	// Debug ping — remove after confirming Go function is reachable
+	if r.URL.Path == "/__ping" {
+		w.Header().Set("Content-Type", "text/plain")
+		fmt.Fprintf(w, "pong\nVENDOR_URL=%s\nAPP_ROOT=%s\n",
+			os.Getenv("VENDOR_URL"), appRoot)
+		return
+	}
 	once.Do(func() { initErr = bootstrap() })
 	if initErr != nil {
 		http.Error(w, fmt.Sprintf("bootstrap error: %v", initErr), http.StatusInternalServerError)
