@@ -129,6 +129,19 @@ func bootstrap() error {
 		return err
 	}
 
+	// Create writable storage directories (basePath/storage is read-only on Vercel).
+	for _, dir := range []string{
+		"/tmp/storage/logs",
+		"/tmp/storage/framework/sessions",
+		"/tmp/storage/framework/views",
+		"/tmp/storage/framework/cache/data",
+		"/tmp/storage/app/public",
+	} {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return fmt.Errorf("mkdir %s: %w", dir, err)
+		}
+	}
+
 	// Composer autoloader resolves paths as /tmp/vendor/composer/../../{dir} = /tmp/{dir}.
 	// Create symlinks so App\, Database\, etc. namespaces resolve to the real source files.
 	for _, dir := range []string{"app", "config", "database", "resources", "routes"} {
@@ -158,6 +171,9 @@ require '/tmp/vendor/autoload.php';
 
 /** @var Application $app */
 $app = require_once '%s/bootstrap/app.php';
+
+// Redirect storage to /tmp/storage (basePath/storage is read-only on Vercel).
+$app->useStoragePath('/tmp/storage');
 
 // PackageManifest defaults vendorPath to basePath/vendor, but vendor is at /tmp/vendor.
 $manifest = new PackageManifest(new Filesystem, $app->basePath(), $app->getCachedPackagesPath());
