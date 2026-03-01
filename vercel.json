@@ -35,9 +35,10 @@
     "APP_ROUTES_CACHE": "/tmp/routes.php",
     "APP_SERVICES_CACHE": "/tmp/services.php",
     "VIEW_COMPILED_PATH": "/tmp/views",
-    "CACHE_DRIVER": "array",
-    "CACHE_STORE": "array",
-    "SESSION_DRIVER": "cookie",
+    "CACHE_DRIVER": "redis",
+    "CACHE_STORE": "redis",
+    "SESSION_DRIVER": "redis",
+    "REDIS_CLIENT": "predis",
     "LOG_CHANNEL": "stderr",
     "PHP_FPM_URL": "https://dl.static-php.dev/static-php-cli/bulk/php-8.4.18-fpm-linux-x86_64.tar.gz"
   }
