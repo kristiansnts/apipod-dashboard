@@ -22,3 +22,6 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+api/bin/php-fpm
+api/vendor.tar.gz
+.vercel

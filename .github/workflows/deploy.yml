@@ -1,0 +1,60 @@
+name: Deploy to Vercel
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          tools: composer
+          extensions: mbstring, pdo, pdo_mysql, openssl, tokenizer, xml, fileinfo, curl, zip
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+
+      - name: Pack vendor.tar.gz
+        run: bash scripts/pack.sh
+
+      - name: Upload vendor.tar.gz to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: vendor-latest
+          name: Vendor (latest)
+          files: api/vendor.tar.gz
+          make_latest: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set VENDOR_URL in Vercel
+        run: |
+          VENDOR_URL="https://github.com/${{ github.repository }}/releases/download/vendor-latest/vendor.tar.gz"
+          npx vercel env rm VENDOR_URL production --yes --token=${{ secrets.VERCEL_TOKEN }} 2>/dev/null || true
+          echo "$VENDOR_URL" | npx vercel env add VENDOR_URL production --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Deploy to Vercel (Production)
+        run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
