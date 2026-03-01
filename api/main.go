@@ -158,6 +158,17 @@ func bootstrap() error {
 		return err
 	}
 
+	// Composer autoloader resolves paths as /tmp/vendor/composer/../../{dir} = /tmp/{dir}.
+	// Create symlinks so App\, Database\, etc. namespaces resolve to the real source files.
+	for _, dir := range []string{"app", "config", "database", "resources", "routes"} {
+		dst := "/tmp/" + dir
+		if _, err := os.Lstat(dst); os.IsNotExist(err) {
+			if err := os.Symlink(appRoot+"/"+dir, dst); err != nil {
+				return fmt.Errorf("symlink %s: %w", dir, err)
+			}
+		}
+	}
+
 	// 3. Write a custom PHP entry that loads vendor from /tmp/vendor
 	//    (/var/task is read-only so we can't symlink vendor there)
 	entryPHP := fmt.Sprintf(`<?php
